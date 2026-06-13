@@ -71,7 +71,7 @@ const p = profile!.data;
                 <a class="brand" href="/"><span class="brand__mark">{p.initial}<b>_</b></span>{p.brand.first}<b>{p.brand.last}</b></a>
                 <p style="color:var(--dim);max-width:34ch;margin:var(--md) 0 0;font-size:14.5px">{p.footerTagline}</p>
                 <div class="socials" style="margin-top:var(--lg)">
-                    {p.socials.map((s) => (
+                    {p.socials.map((s: { url: string | URL | null | undefined; name: string | null | undefined; icon: string; }) => (
                         <a href={s.url} aria-label={s.name}><Icon name={s.icon} /></a>
                     ))}
                 </div>
@@ -81,7 +81,7 @@ const p = profile!.data;
                         href="/blog">Blog</a><a href="/about">About</a><a href="/contact">Contact</a></div>
             </div>
             <div><h4>Elsewhere</h4>
-                <div class="footer__links">{p.elsewhere.map((e) => <a href={e.url}>{e.name}</a>)}</div>
+                <div class="footer__links">{p.elsewhere.map((e: { url: string | URL | null | undefined; name: unknown; }) => <a href={e.url}>{e.name}</a>)}</div>
             </div>
         </div>
         <div class="footer__bottom">

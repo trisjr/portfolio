@@ -1,7 +1,9 @@
 ---
-import { getCollection, render } from "astro:content";
+import { getCollection, getEntry, render } from "astro:content";
 import Layout from "../../layouts/Layout.astro";
 import "../../styles/pages/post.css";
+
+const me = (await getEntry("profile", "me"))!.data;
 
 export async function getStaticPaths() {
     const posts = (await getCollection("blog")).sort(
@@ -25,9 +27,14 @@ const a = post.data;
 const fmtDate = (d: Date) =>
     d.toLocaleDateString("en-US", { month: "long", year: "numeric" });
 const tints = ["0,217,255", "187,134,252", "0,245,255", "255,0,110"];
+
+const xHandle = (me.socials.find((s) => s.name === "X")?.url ?? "")
+    .replace(/\/+$/, "")
+    .split("/")
+    .pop();
 ---
 
-<Layout title={`${a.title} — TrisJr`} active="blog">
+<Layout title={`${a.title} — ${me.name}`} active="blog">
     <div id="progress"></div>
     <main id="main" data-screen-label="Blog detail">
         <article class="wrap article-head">
@@ -40,8 +47,11 @@ const tints = ["0,217,255", "187,134,252", "0,245,255", "255,0,110"];
                 <h1 class="h-glow">{a.title}</h1>
                 <div class="article-meta">
                     <div class="author">
-                        <span class="author__ava">T</span>
-                        <div><b>TrisJr</b><span>Full-Stack Developer</span></div>
+                        <span class="author__ava">
+                            <img src={me.avatar} alt={me.name} onerror="this.remove()" />
+                            {me.initial}
+                        </span>
+                        <div><b>{me.name}</b><span>{me.role}</span></div>
                     </div>
                     <span class="meta-dot"></span>
                     <span class="mono">{fmtDate(a.pubDate)}</span>
@@ -65,12 +75,12 @@ const tints = ["0,217,255", "187,134,252", "0,245,255", "255,0,110"];
 
             <div class="article-foot">
                 <div class="label">Filed under</div>
-                <div class="chips"><span class="chip chip--on">{a.cat}</span><span class="chip">Engineering</span><span class="chip">TrisJr</span></div>
+                <div class="chips"><span class="chip chip--on">{a.cat}</span><span class="chip">Engineering</span><span class="chip">{me.name}</span></div>
                 <div class="share">
                     <span class="mono" style="font-family:var(--mono);font-size:13px;color:var(--faint)">Share this transmission</span>
-                    <div class="share__btns">
-                        <a href="#" aria-label="Share on X"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 2H22l-7.6 8.7L23.3 22h-6.9l-5.4-7-6.2 7H1.7l8.2-9.3L1 2h7.1l4.9 6.4L18.9 2zm-1.2 18h1.9L7.4 4H5.4l12.3 16z"/></svg></a>
-                        <a href="#" aria-label="Share on LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5A2.5 2.5 0 1 1 0 3.5a2.5 2.5 0 0 1 4.98 0zM.25 8.25h4.5V24H.25zM8.25 8.25h4.31v2.15h.06c.6-1.13 2.07-2.32 4.26-2.32 4.56 0 5.4 3 5.4 6.9V24h-4.5v-6.96c0-1.66-.03-3.8-2.32-3.8-2.32 0-2.67 1.8-2.67 3.67V24h-4.5z"/></svg></a>
+                    <div class="share__btns" id="share" data-title={a.title} data-via={xHandle}>
+                        <a href="#" id="shareX" target="_blank" rel="noopener" aria-label="Share on X"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 2H22l-7.6 8.7L23.3 22h-6.9l-5.4-7-6.2 7H1.7l8.2-9.3L1 2h7.1l4.9 6.4L18.9 2zm-1.2 18h1.9L7.4 4H5.4l12.3 16z"/></svg></a>
+                        <a href="#" id="shareLinkedIn" target="_blank" rel="noopener" aria-label="Share on LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5A2.5 2.5 0 1 1 0 3.5a2.5 2.5 0 0 1 4.98 0zM.25 8.25h4.5V24H.25zM8.25 8.25h4.31v2.15h.06c.6-1.13 2.07-2.32 4.26-2.32 4.56 0 5.4 3 5.4 6.9V24h-4.5v-6.96c0-1.66-.03-3.8-2.32-3.8-2.32 0-2.67 1.8-2.67 3.67V24h-4.5z"/></svg></a>
                         <a href="#" id="copyLink" aria-label="Copy link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg></a>
                     </div>
                 </div>
@@ -121,6 +131,18 @@ const tints = ["0,217,255", "187,134,252", "0,245,255", "255,0,110"];
         };
         window.addEventListener("scroll", onScroll, {passive: true});
         onScroll();
+
+        // share intents (built client-side so the URL matches the deployed domain)
+        const share = document.getElementById("share");
+        if (share) {
+          const url = encodeURIComponent(location.href);
+          const title = encodeURIComponent(share.dataset.title || document.title);
+          const via = share.dataset.via;
+          const x = document.getElementById("shareX");
+          const li = document.getElementById("shareLinkedIn");
+          if (x) x.href = `https://x.com/intent/tweet?url=${url}&text=${title}` + (via ? `&via=${via}` : "");
+          if (li) li.href = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`;
+        }
 
         // copy link
         const copy = document.getElementById("copyLink");
