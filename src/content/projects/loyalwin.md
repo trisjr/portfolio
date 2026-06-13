@@ -16,7 +16,7 @@ highlights:
   - CASL RBAC admin panel with analytics dashboards
 links:
   live: "https://app.clickup.com/9018436962/v/f/901813282563/90182683331"
-  code: "#"
+  code: "https://github.com/tenomad-company/loyalty-frontend"
 ---
 
 LoyalWin is a loyalty-program platform spanning a React customer app, a Vue 3 admin panel and a NestJS API. It covers points, membership tiers, vouchers, referrals and QR transactions, with schedulers driving automatic tier changes and expiration.

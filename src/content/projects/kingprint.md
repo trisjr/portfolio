@@ -16,7 +16,7 @@ highlights:
   - Reporting tailored for cost analysis
 links:
   live: "#"
-  code: "#"
+  code: "https://bear-team.backlog.com/git/KPS/kps-frontend/tree/dev"
 ---
 
 Kingprint manages print orders — posters for outdoor and retail — and optimizes the workflow by computing production cost from man-hours and machine-hours. Built on a Python (FastAPI) and NestJS backend over PostgreSQL.

@@ -16,7 +16,7 @@ highlights:
   - Compresses delivery with a 6-step universal workflow
 links:
   live: "#"
-  code: "#"
+  code: "https://github.com/tenomad-company/tnm-webfast"
 ---
 
 This R&D track builds the workflows and skills that automate the delivery pipeline — from receiving a client brief and design system to shipping a finished site. The default Astro + React theme self-customizes from a `design.md`, while role-specific AI skills drive each SDLC stage.

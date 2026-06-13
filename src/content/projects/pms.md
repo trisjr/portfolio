@@ -16,7 +16,7 @@ highlights:
   - Document pipeline with OCR, CAD/DXF preview & real-time progress tracking
 links:
   live: "#"
-  code: "#"
+  code: "https://github.com/tenomad-company/sun-frontend"
 ---
 
 PMS manages the full project lifecycle — hierarchical documents, task assignment and multi-level approvals — in a React monorepo on a NestJS backend. It handles document versioning, OCR/CAD processing, Elasticsearch search, real-time notifications and Vietnamese/English i18n.
