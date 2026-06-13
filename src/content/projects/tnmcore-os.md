@@ -3,6 +3,8 @@ title: TNMCORE-OS
 category: AI Platform · DevTools
 tagline: An AI-native team operating system that turns Agile/Scrum into a multi-agent SDLC workspace.
 year: "2026"
+startDate: "2026-03"
+current: true
 role: Architect
 stack: ["TypeScript", "Node.js", "CLI", "MCP", "ClickUp API"]
 featured: true

@@ -3,6 +3,8 @@ title: Unitel
 category: UI/UX · Revamp
 tagline: A UI/UX upgrade re-skinning the product to a new Figma design while optimizing API logic and adding features.
 year: "2024"
+startDate: "2024-05"
+endDate: "2024-08"
 role: Web Developer
 stack: ["React", "Node.js", "Figma"]
 featured: false

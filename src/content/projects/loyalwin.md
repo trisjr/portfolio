@@ -3,6 +3,8 @@ title: LoyalWin
 category: Loyalty · Mobile Web
 tagline: A loyalty program platform with points, tiers, vouchers and QR transactions across customer and admin apps.
 year: "2025"
+startDate: "2025-12"
+endDate: "2026-04"
 role: Web Developer
 stack: ["React 19", "Vue 3", "NestJS", "PostgreSQL", "TypeORM", "Socket.io"]
 featured: true

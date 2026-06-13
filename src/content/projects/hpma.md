@@ -3,6 +3,8 @@ title: High Performance Marketing Ads
 category: AdTech · FinOps
 tagline: A high-performance platform for renting, sharing and reconciling Facebook ad accounts across a 3-tier org.
 year: "2025"
+startDate: "2025-05"
+current: true
 role: Web Developer
 stack: ["Vue 3", "NestJS", "Strapi v5", "PostgreSQL", "Redis", "Facebook API"]
 featured: true

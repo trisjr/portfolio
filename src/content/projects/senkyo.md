@@ -3,6 +3,8 @@ title: Senkyo
 category: GovTech · Japan
 tagline: An election management website for Japan, organizing campaigns by location and time.
 year: "2023"
+startDate: "2023-03"
+endDate: "2023-10"
 role: Web Developer
 stack: ["React", "MUI", "GraphQL", "AWS"]
 featured: false

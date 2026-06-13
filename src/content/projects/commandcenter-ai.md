@@ -3,6 +3,8 @@ title: CommandCenter AI
 category: SaaS · Social Media
 tagline: An end-to-end content operations studio — brief, AI generation, approval, scheduling and inbox in one workspace.
 year: "2026"
+startDate: "2026-06"
+current: true
 role: Web Developer
 stack: ["React 19", "NestJS", "PostgreSQL", "Prisma", "OpenAI", "Socket.IO"]
 featured: true

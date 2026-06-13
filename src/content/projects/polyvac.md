@@ -3,6 +3,8 @@ title: Polyvac
 category: HealthTech · Gov
 tagline: A digital-transformation system for a national vaccine center under the Ministry of Health.
 year: "2022"
+startDate: "2022-01"
+endDate: "2024-08"
 role: Web Developer
 stack: ["Vue.js", "NestJS", "Strapi", "PostgreSQL"]
 featured: false

@@ -163,14 +163,14 @@
 /* timeline */
 .timeline {
     position: relative;
-    padding-left: 40px;
     margin-top: var(--xl);
 }
 
 .timeline::before {
     content: "";
     position: absolute;
-    left: 9px;
+    left: 50%;
+    transform: translateX(-50%);
     top: 6px;
     bottom: 6px;
     width: 2px;
@@ -179,13 +179,25 @@
 
 .tl-item {
     position: relative;
+    width: 50%;
     padding-bottom: var(--2xl);
+}
+
+.tl-item:nth-child(odd) {
+    left: 0;
+    padding-right: var(--2xl);
+    text-align: right;
+}
+
+.tl-item:nth-child(even) {
+    margin-left: 50%;
+    padding-left: var(--2xl);
+    text-align: left;
 }
 
 .tl-item::before {
     content: "";
     position: absolute;
-    left: -36px;
     top: 4px;
     width: 14px;
     height: 14px;
@@ -193,6 +205,14 @@
     background: var(--bg);
     border: 2px solid var(--accent);
     box-shadow: 0 0 12px var(--accent);
+}
+
+.tl-item:nth-child(odd)::before {
+    right: -7px;
+}
+
+.tl-item:nth-child(even)::before {
+    left: -7px;
 }
 
 .tl-item .yr {
@@ -218,7 +238,10 @@
     color: var(--dim);
     font-size: 15px;
     margin: 0;
-    max-width: 60ch;
+}
+
+.tl-item:nth-child(odd) p {
+    margin-left: auto;
 }
 
 .values {
@@ -263,5 +286,35 @@
 
     .values {
         grid-template-columns: 1fr;
+    }
+
+    /* timeline collapses to a single left-aligned column */
+    .timeline {
+        padding-left: 40px;
+    }
+
+    .timeline::before {
+        left: 9px;
+        transform: none;
+    }
+
+    .tl-item,
+    .tl-item:nth-child(odd),
+    .tl-item:nth-child(even) {
+        width: 100%;
+        margin-left: 0;
+        padding-left: 0;
+        padding-right: 0;
+        text-align: left;
+    }
+
+    .tl-item:nth-child(odd)::before,
+    .tl-item:nth-child(even)::before {
+        left: -31px;
+        right: auto;
+    }
+
+    .tl-item:nth-child(odd) p {
+        margin-left: 0;
     }
 }

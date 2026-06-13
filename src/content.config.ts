@@ -8,6 +8,10 @@ const projects = defineCollection({
     category: z.string(),
     tagline: z.string(),
     year: z.string(),
+    // `startDate`/`endDate` use "YYYY-MM"; omit `endDate` when ongoing/unknown.
+    startDate: z.string(),
+    endDate: z.string().optional(),
+    current: z.boolean().default(false),
     role: z.string(),
     stack: z.array(z.string()),
     featured: z.boolean().default(false),

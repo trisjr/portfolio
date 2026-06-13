@@ -1,9 +1,30 @@
 ---
-import { getEntry } from "astro:content";
+import { getCollection, getEntry } from "astro:content";
 import Layout from "../layouts/Layout.astro";
 import "../styles/pages/about.css";
 
 const me = (await getEntry("profile", "me"))!.data;
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const fmtMonth = (d: string) => {
+    const [y, m] = d.split("-");
+    return `${MONTHS[Number(m) - 1]} ${y}`;
+};
+const period = (p: { startDate: string; endDate?: string; current: boolean }) => {
+    const start = fmtMonth(p.startDate);
+    if (p.current) return `${start} — Now`;
+    if (p.endDate) return `${start} — ${fmtMonth(p.endDate)}`;
+    return start;
+};
+
+const timeline = (await getCollection("projects"))
+    .sort((a, b) => a.data.order - b.data.order)
+    .map((p) => ({
+        yr: period(p.data),
+        role: p.data.role,
+        org: p.data.title,
+        desc: p.data.tagline,
+    }));
 ---
 
 <Layout title="About — TrisJr" active="about">
@@ -45,7 +66,7 @@ const me = (await getEntry("profile", "me"))!.data;
         <section class="section wrap" data-screen-label="Experience timeline">
             <p class="kicker reveal">Trajectory</p>
             <h2 class="section-title h-glow reveal" data-d="1" style="margin-bottom:var(--xl)">Experience log</h2>
-            <div class="timeline" id="timeline" data-jobs={JSON.stringify(me.jobs)}></div>
+            <div class="timeline" id="timeline" data-jobs={JSON.stringify(timeline)}></div>
         </section>
 
         <!-- VALUES -->

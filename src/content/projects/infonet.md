@@ -3,6 +3,8 @@ title: Infonet
 category: CMS · Website Builder
 tagline: A multi-tenant CMS platform for building and managing websites across a System → Service → Site → Page hierarchy.
 year: "2024"
+startDate: "2024-11" 
+endDate: "2025-06"
 role: Web Developer
 stack: ["React", "Next.js", "GraphQL", "MySQL", "SQL Server", "AWS"]
 featured: false

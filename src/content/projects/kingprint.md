@@ -3,6 +3,8 @@ title: Kingprint
 category: Manufacturing · ERP
 tagline: A print-order management system that calculates production cost from man-hours and machine-hours.
 year: "2024"
+startDate: "2024-05"
+endDate: "2024-11"
 role: Web Developer
 stack: ["Python", "FastAPI", "NestJS", "Node.js", "PostgreSQL"]
 featured: false

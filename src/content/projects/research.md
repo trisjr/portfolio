@@ -3,6 +3,8 @@ title: R&D Build Workflow
 category: R&D · Automation
 tagline: An AI-driven pipeline that turns a client brief and design.md into a production website via role-based skills.
 year: "2026"
+startDate: "2026-05"
+current: true
 role: Web Developer
 stack: ["Astro", "React", "Strapi", "AI Skills"]
 featured: false

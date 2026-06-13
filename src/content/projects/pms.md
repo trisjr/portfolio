@@ -3,6 +3,8 @@ title: Project Management System
 category: Enterprise · Workflow
 tagline: A full-lifecycle project & document platform with multi-level approvals, versioning and CAD/OCR processing.
 year: "2025"
+startDate: "2025-10"
+endDate: "2026-05"
 role: Web Developer
 stack: ["React 19", "NestJS 11", "PostgreSQL", "TypeORM", "Elasticsearch", "Azure"]
 featured: true
