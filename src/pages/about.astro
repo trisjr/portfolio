@@ -1,0 +1,189 @@
+---
+import Layout from "../layouts/Layout.astro";
+import "../styles/pages/about.css";
+---
+
+<Layout title="About — TrisJr" active="about">
+    <main>
+        <section class="wrap page-head" data-screen-label="About intro">
+            <div class="intro">
+                <div class="reveal">
+                    <div class="portrait"><span>T</span><span class="dot"></span></div>
+                </div>
+                <div>
+                    <p class="kicker reveal">// whoami --verbose</p>
+                    <h1 class="h-glow reveal" data-d="1">I'm TrisJr.<br>I build the <span class="gradient-text">unseen machinery</span>.
+                    </h1>
+                    <p class="reveal" data-d="2">For seven years I've lived at the seam between design and engineering —
+                        the place where a beautiful interface meets the messy reality of distributed systems. I started
+                        as a frontend dev obsessed with animation, then fell down the rabbit hole of <strong>real-time
+                            infrastructure</strong> and never climbed back out.</p>
+                    <p class="reveal" data-d="3">Today I lead engineering on products where milliseconds and pixels
+                        matter equally. I'm happiest with a hard problem, a blank editor, and far too much coffee.</p>
+                    <div class="hero__cta reveal" data-d="4" style="display:flex;gap:14px;margin-top:var(--lg)">
+                        <a class="btn btn--primary" href="/contact">Work with me</a>
+                        <a class="btn btn--ghost" href="#" download>Download CV</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CONSTELLATION -->
+        <section class="section wrap" data-screen-label="Skill constellation">
+            <p class="kicker reveal">Skill constellation</p>
+            <h2 class="section-title h-glow reveal" data-d="1">A connected map of what I do</h2>
+            <p class="section-sub reveal" data-d="2" style="margin-bottom:var(--2xl)">Hover any node to light up the
+                network. Bigger orbs are deeper specialties.</p>
+            <div class="card const-wrap reveal" data-d="2" style="padding:var(--lg)">
+                <div class="const" id="const">
+                    <svg id="constLines"></svg>
+                </div>
+            </div>
+        </section>
+
+        <!-- TIMELINE -->
+        <section class="section wrap" data-screen-label="Experience timeline">
+            <p class="kicker reveal">Trajectory</p>
+            <h2 class="section-title h-glow reveal" data-d="1" style="margin-bottom:var(--xl)">Experience log</h2>
+            <div class="timeline" id="timeline"></div>
+        </section>
+
+        <!-- VALUES -->
+        <section class="section section--tight wrap" data-screen-label="Values">
+            <p class="kicker reveal">Operating principles</p>
+            <h2 class="section-title h-glow reveal" data-d="1" style="margin-bottom:var(--2xl)">How I work</h2>
+            <div class="values">
+                <div class="card value reveal" data-d="1">
+                    <div class="ico">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2">
+                            <path d="m13 2-3 7h5l-3 7"/>
+                            <circle cx="12" cy="12" r="9"/>
+                        </svg>
+                    </div>
+                    <h4>Speed is a feature</h4>
+                    <p>If it isn't fast, it isn't finished. Performance is designed in from the first commit, not bolted
+                        on later.</p>
+                </div>
+                <div class="card value reveal" data-d="2">
+                    <div class="ico">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="3"/>
+                            <path d="M9 9h6v6H9z"/>
+                        </svg>
+                    </div>
+                    <h4>Systems over hacks</h4>
+                    <p>I'd rather spend a day on the right abstraction than a week firefighting the wrong one. Build it
+                        so it bends, not breaks.</p>
+                </div>
+                <div class="card value reveal" data-d="3">
+                    <div class="ico">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2">
+                            <path d="M12 2a10 10 0 1 0 10 10"/>
+                            <path d="M12 8v4l3 2"/>
+                        </svg>
+                    </div>
+                    <h4>Ship, then sharpen</h4>
+                    <p>Real feedback beats imagined perfection. Get it in front of people, measure, and iterate
+                        relentlessly.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script is:inline slot="scripts">
+      (function () {
+        // ---- skill constellation ----
+        const skills = [{l: "TypeScript", x: 50, y: 50, s: "lg"}, {l: "React", x: 24, y: 26, s: "md"}, {
+          l: "Rust",
+          x: 76,
+          y: 28,
+          s: "md"
+        }, {l: "WebGL", x: 18, y: 64, s: "sm"}, {l: "Node", x: 80, y: 66, s: "md"}, {
+          l: "Postgres",
+          x: 50,
+          y: 84,
+          s: "sm"
+        }, {l: "AWS", x: 36, y: 82, s: "sm"}, {l: "Go", x: 64, y: 82, s: "sm"}, {
+          l: "Three.js",
+          x: 30,
+          y: 46,
+          s: "sm"
+        }, {l: "K8s", x: 70, y: 50, s: "sm"},];
+        const links = [[0, 1], [0, 2], [0, 4], [0, 8], [0, 9], [1, 3], [1, 8], [2, 4], [2, 7], [4, 5], [4, 9], [3, 6], [6, 5], [7, 5]];
+        const cont = document.getElementById("const");
+        const svg = document.getElementById("constLines");
+        skills.forEach((sk, i) => {
+          const n = document.createElement("div");
+          n.className = "node node--" + sk.s;
+          n.dataset.i = i;
+          n.style.left = sk.x + "%";
+          n.style.top = sk.y + "%";
+          n.innerHTML = `<div class="node__orb">${sk.l.length > 5 ? sk.l.slice(0, 2).toUpperCase() : sk.l}</div><span class="node__label">${sk.l}</span>`;
+          cont.appendChild(n);
+        });
+
+        function drawLines() {
+          const rect = cont.getBoundingClientRect();
+          svg.setAttribute("viewBox", `0 0 ${rect.width} ${rect.height}`);
+          const pos = skills.map(s => ({x: s.x / 100 * rect.width, y: s.y / 100 * rect.height}));
+          svg.innerHTML = links.map(([a, b], i) => `<line data-a="${a}" data-b="${b}" x1="${pos[a].x}" y1="${pos[a].y}" x2="${pos[b].x}" y2="${pos[b].y}"
+          stroke="rgba(var(--accent-rgb),.18)" stroke-width="1"/>`).join("");
+        }
+
+        drawLines();
+        window.addEventListener("resize", drawLines);
+        cont.querySelectorAll(".node").forEach(n => {
+          n.addEventListener("mouseenter", () => {
+            const i = +n.dataset.i;
+            svg.querySelectorAll("line").forEach(ln => {
+              const on = +ln.dataset.a === i || +ln.dataset.b === i;
+              ln.setAttribute("stroke", on ? "rgba(var(--accent-rgb),.8)" : "rgba(var(--accent-rgb),.08)");
+              ln.setAttribute("stroke-width", on ? "2" : "1");
+            });
+          });
+          n.addEventListener("mouseleave", () => {
+            svg.querySelectorAll("line").forEach(ln => {
+              ln.setAttribute("stroke", "rgba(var(--accent-rgb),.18)");
+              ln.setAttribute("stroke-width", "1");
+            });
+          });
+        });
+
+        // ---- timeline ----
+        const jobs = [{
+          yr: "2023 — Now",
+          role: "Principal Engineer",
+          org: "Nebula Labs · Remote",
+          desc: "Lead the realtime platform team. Architected the sync core powering 10k concurrent collaborators and mentor a team of six."
+        }, {
+          yr: "2020 — 2023",
+          role: "Senior Full-Stack Engineer",
+          org: "Atlas Systems · Berlin",
+          desc: "Built the data visualization stack and ingestion pipeline behind a planet-scale observability product. Owned both the WebGL renderer and the query layer."
+        }, {
+          yr: "2018 — 2020",
+          role: "Frontend Engineer",
+          org: "Synth Studio · Lisbon",
+          desc: "Shipped the design system and component library still used across the company's products. Fell in love with motion and accessibility."
+        }, {
+          yr: "2017 — 2018",
+          role: "Freelance Developer",
+          org: "Self-employed",
+          desc: "Built websites, tools, and the occasional game for clients across three continents. Learned how to talk to humans about code."
+        },];
+        const tl = document.getElementById("timeline");
+        jobs.forEach((j, i) => {
+          const el = document.createElement("div");
+          el.className = "tl-item reveal";
+          el.dataset.d = (i % 4) + 1;
+          el.innerHTML = `<span class="yr">${j.yr}</span><h3>${j.role}</h3><div class="org">${j.org}</div><p>${j.desc}</p>`;
+          tl.appendChild(el);
+        });
+        // these nodes were appended after initial reveal pass — reveal them via the shared helper
+        if (window.__revealInView) window.__revealInView(tl); else tl.querySelectorAll(".reveal").forEach(el => el.classList.add("in"));
+      })();
+    </script>
+</Layout>

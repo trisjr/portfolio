@@ -1,0 +1,95 @@
+---
+import Layout from "../layouts/Layout.astro";
+import "../styles/pages/blog.css";
+---
+
+<Layout title="Blog — TrisJr" active="blog">
+    <main>
+        <section class="wrap page-head" data-screen-label="Blog header">
+            <p class="kicker reveal">// transmissions</p>
+            <h1 class="h-glow reveal" data-d="1">Notes from <span class="gradient-text">the terminal</span></h1>
+            <p class="reveal" data-d="2">Essays on real-time systems, the browser as a platform, and the craft of
+                building software that feels good to use.</p>
+        </section>
+
+        <section class="wrap" id="featureSlot"></section>
+
+        <section class="wrap section--tight">
+            <h2 class="section-title h-glow reveal" style="font-size:28px;margin-bottom:var(--xl)">More writing</h2>
+            <div class="posts" id="posts"></div>
+        </section>
+
+        <section class="wrap" style="padding-bottom:var(--4xl)">
+            <div class="card news reveal">
+                <div>
+                    <p class="kicker">Signal, not noise</p>
+                    <h3>Join the transmission</h3>
+                    <p>One email when I publish something worth your time. No spam, no tracking pixels, ever.</p>
+                </div>
+                <form class="news__form" id="news">
+                    <input type="email" placeholder="you@domain.dev" aria-label="Email" required>
+                    <button class="btn btn--primary" type="submit">Subscribe</button>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <script is:inline src="/assets/projects-data.js" slot="data"></script>
+    <script is:inline slot="scripts">
+      (function () {
+        const tints = ["0,217,255", "187,134,252", "0,245,255", "255,0,110"];
+        const f = ARTICLES[0];
+        document.getElementById("featureSlot").innerHTML = `
+      <a class="card feature reveal" href="/post?id=${f.id}">
+        <div class="feature__viz" style="background:radial-gradient(80% 100% at 30% 30%,rgba(0,217,255,.16),transparent)">
+          <pre>fn merge(a, b) {
+  reconcile(a, b)
+    .resolve()
+    .broadcast()
+}</pre>
+        </div>
+        <div class="feature__body">
+          <span class="tag">Featured · ${f.cat}</span>
+          <h2>${f.title}</h2>
+          <p>${f.excerpt}</p>
+          <div class="post-meta">
+            <span>${f.date}</span><span>·</span><span>${f.read} read</span>
+            <span class="read-more">Read article →</span>
+          </div>
+        </div>
+      </a>`;
+
+        const host = document.getElementById("posts");
+        ARTICLES.slice(1).forEach((a, i) => {
+          const t = tints[(i + 1) % tints.length];
+          const el = document.createElement("a");
+          el.className = "card post reveal";
+          el.dataset.d = (i % 3) + 1;
+          el.href = "/post?id=" + a.id;
+          el.innerHTML = `
+        <div class="post__viz" style="background:radial-gradient(70% 90% at 60% 20%,rgba(${t},.16),transparent)">
+          <code style="color:rgba(${t},.7)">${a.code}</code>
+        </div>
+        <div class="post__body">
+          <span class="tag">${a.cat}</span>
+          <h3>${a.title}</h3>
+          <p>${a.excerpt}</p>
+          <div class="post-meta"><span>${a.date}</span><span>·</span><span>${a.read}</span></div>
+        </div>`;
+          host.appendChild(el);
+        });
+
+        const news = document.getElementById("news");
+        news.addEventListener("submit", e => {
+          e.preventDefault();
+          const btn = news.querySelector("button");
+          btn.textContent = "✓ Subscribed";
+          news.querySelector("input").value = "";
+          setTimeout(() => btn.textContent = "Subscribe", 2600);
+        });
+
+        // reveal the cards injected above (added after the engine's first pass)
+        if (window.__revealInView) window.__revealInView();
+      })();
+    </script>
+</Layout>

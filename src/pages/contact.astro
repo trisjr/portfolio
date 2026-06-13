@@ -1,0 +1,129 @@
+---
+import Layout from "../layouts/Layout.astro";
+import "../styles/pages/contact.css";
+---
+
+<Layout title="Contact — TrisJr" active="contact">
+    <main>
+        <section class="wrap page-head" data-screen-label="Contact">
+            <div class="contact">
+                <div>
+                    <p class="kicker reveal">// open a channel</p>
+                    <h1 class="h-glow reveal" data-d="1">Let's build<br>something <span
+                            class="gradient-text">unreal</span>.</h1>
+                    <p class="lead reveal" data-d="2">Got a project, a problem, or just want to trade notes on real-time
+                        systems? My inbox is always open.</p>
+
+                    <div class="ch-list reveal" data-d="3">
+                        <a class="ch" href="mailto:hey@trisjr.dev">
+                            <span class="ch__ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                                       stroke="currentColor" stroke-width="2"><rect x="3" y="5"
+                                                                                                    width="18"
+                                                                                                    height="14" rx="2"/><path
+                                    d="m3 7 9 6 9-6"/></svg></span>
+                            <span><span class="ch__t">Email</span><span class="ch__v">hey@trisjr.dev</span></span>
+                        </a>
+                        <a class="ch" href="#">
+                            <span class="ch__ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path
+                                    d="M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.87 8.37 6.84 9.73.5.1.68-.22.68-.49v-1.7c-2.78.62-3.37-1.22-3.37-1.22-.45-1.18-1.11-1.5-1.11-1.5-.91-.64.07-.62.07-.62 1 .07 1.53 1.06 1.53 1.06.9 1.57 2.34 1.12 2.91.85.09-.66.35-1.12.63-1.38-2.22-.26-4.56-1.14-4.56-5.07 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.71 0 0 .84-.27 2.75 1.05a9.3 9.3 0 0 1 5 0c1.91-1.32 2.75-1.05 2.75-1.05.55 1.41.2 2.45.1 2.71.64.72 1.03 1.63 1.03 2.75 0 3.94-2.34 4.81-4.57 5.06.36.32.68.94.68 1.9v2.82c0 .27.18.6.69.49A10.26 10.26 0 0 0 22 12.25C22 6.58 17.52 2 12 2z"/></svg></span>
+                            <span><span class="ch__t">GitHub</span><span class="ch__v">github.com/trisjr</span></span>
+                        </a>
+                        <a class="ch" href="#">
+                            <span class="ch__ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path
+                                    d="M4.98 3.5A2.5 2.5 0 1 1 0 3.5a2.5 2.5 0 0 1 4.98 0zM.25 8.25h4.5V24H.25zM8.25 8.25h4.31v2.15h.06c.6-1.13 2.07-2.32 4.26-2.32 4.56 0 5.4 3 5.4 6.9V24h-4.5v-6.96c0-1.66-.03-3.8-2.32-3.8-2.32 0-2.67 1.8-2.67 3.67V24h-4.5z"/></svg></span>
+                            <span><span class="ch__t">LinkedIn</span><span class="ch__v">in/trisjr</span></span>
+                        </a>
+                    </div>
+
+                    <div class="status-card reveal" data-d="4"><span class="dot"></span> Currently available · responds
+                        within 24h · UTC+1
+                    </div>
+                </div>
+
+                <div class="card form reveal" data-d="2">
+                    <div class="form-body" id="formBody">
+                        <form id="contactForm" novalidate>
+                            <div class="row2">
+                                <div class="field"><label for="name">Name</label><input id="name" name="name"
+                                                                                        type="text"
+                                                                                        placeholder="Ada Lovelace"
+                                                                                        required><span class="err">Please enter your name</span>
+                                </div>
+                                <div class="field"><label for="email">Email</label><input id="email" name="email"
+                                                                                          type="email"
+                                                                                          placeholder="ada@domain.dev"
+                                                                                          required><span class="err">Enter a valid email</span>
+                                </div>
+                            </div>
+                            <div class="field"><label for="topic">What's this about?</label>
+                                <select id="topic" name="topic">
+                                    <option>A new project</option>
+                                    <option>Consulting / advisory</option>
+                                    <option>Speaking / writing</option>
+                                    <option>Just saying hi</option>
+                                </select>
+                            </div>
+                            <div class="field"><label for="msg">Message</label><textarea id="msg" name="msg"
+                                                                                         placeholder="Tell me about what you're building..."
+                                                                                         required></textarea><span
+                                    class="err">Add a few words</span></div>
+                            <button class="btn btn--primary form__submit" type="submit">
+                                Transmit message
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="m22 2-7 20-4-9-9-4 20-7z"/>
+                                </svg>
+                            </button>
+                        </form>
+                    </div>
+                    <div class="sent" id="sent">
+                        <div class="check">
+                            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                 stroke-width="2.5">
+                                <path d="M20 6 9 17l-5-5"/>
+                            </svg>
+                        </div>
+                        <h3>Transmission received</h3>
+                        <p>Thanks for reaching out — I'll get back to you within a day. Talk soon.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script is:inline slot="scripts">
+      (function () {
+        const form = document.getElementById("contactForm");
+        const fields = {
+          name: el => el.value.trim().length > 1,
+          email: el => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(el.value.trim()),
+          msg: el => el.value.trim().length > 4,
+        };
+
+        function check(id) {
+          const el = document.getElementById(id);
+          const wrap = el.closest(".field");
+          const ok = fields[id](el);
+          wrap.classList.toggle("bad", !ok);
+          return ok;
+        }
+
+        Object.keys(fields).forEach(id => {
+          const el = document.getElementById(id);
+          el.addEventListener("blur", () => check(id));
+          el.addEventListener("input", () => {
+            if (el.closest(".field").classList.contains("bad")) check(id);
+          });
+        });
+        form.addEventListener("submit", e => {
+          e.preventDefault();
+          const valid = Object.keys(fields).map(check).every(Boolean);
+          if (!valid) {
+            form.querySelector(".bad input, .bad textarea").focus();
+            return;
+          }
+          document.getElementById("formBody").classList.add("hide");
+          document.getElementById("sent").classList.add("show");
+        });
+      })();
+    </script>
+</Layout>

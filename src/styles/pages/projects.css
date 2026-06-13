@@ -1,0 +1,52 @@
+.page-head { padding: 150px 0 var(--xl); }
+.page-head h1 { font-size: clamp(40px, 7vw, 76px); }
+.page-head p { color: var(--dim); font-size: 18px; max-width: 54ch; margin: var(--md) 0 0; }
+.filters { display: flex; flex-wrap: wrap; gap: 10px; margin: var(--2xl) 0 var(--xl); }
+.filter { font-family: var(--mono); font-size: 13px; padding: 9px 16px; border-radius: 999px;
+  border: 1px solid var(--line); background: transparent; color: var(--dim); cursor: none; transition: all .25s; }
+.filter.on { color: var(--bg-deep); background: var(--accent); border-color: var(--accent);
+  box-shadow: 0 0 calc(18px * var(--glow)) rgba(var(--accent-rgb),.45); }
+.filter:hover:not(.on) { color: var(--text); border-color: rgba(var(--accent-rgb),.5); }
+@media (pointer:coarse){ .filter { cursor: pointer; } }
+
+.grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--lg); }
+.proj { padding: 0; cursor: none; overflow: hidden; }
+@media (pointer:coarse){ .proj { cursor: pointer; } }
+.proj__top { padding: var(--xl) var(--xl) 0; display: flex; justify-content: space-between; align-items: flex-start; }
+.proj__num { font-family: var(--mono); font-size: 13px; color: var(--faint); }
+.proj__yr { font-family: var(--mono); font-size: 12px; color: var(--faint); }
+.proj__viz { height: 150px; margin: var(--md) var(--xl); border-radius: 14px; position: relative; overflow: hidden;
+  display: grid; place-items: center; border: 1px solid var(--line-soft); }
+.proj__viz .ring { position: absolute; width: 120px; height: 120px; border-radius: 50%; border: 1px solid; opacity: .5; }
+.proj__viz .ring:nth-child(2){ width: 80px; height: 80px; opacity: .8; }
+.proj__viz .core { width: 14px; height: 14px; border-radius: 50%; }
+.proj:hover .proj__viz .ring { animation: pulse 1.6s var(--ease) infinite; }
+@keyframes pulse { 0%,100%{ transform: scale(1); opacity:.4 } 50%{ transform: scale(1.12); opacity:.8 } }
+.proj__body { padding: var(--md) var(--xl) var(--xl); }
+.proj__cat { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; }
+.proj__body h3 { font-size: 24px; margin: 8px 0 8px; }
+.proj__body p { color: var(--dim); font-size: 15px; margin: 0 0 var(--md); }
+
+/* modal */
+.modal { position: fixed; inset: 0; z-index: 500; display: none; }
+.modal.open { display: block; }
+.modal__scrim { position: absolute; inset: 0; background: rgba(5,7,20,.78); backdrop-filter: blur(8px); }
+.modal__panel { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -48%);
+  width: min(760px, 92vw); max-height: 88vh; overflow-y: auto; opacity: 0; transition: all .4s var(--ease);
+  border-radius: 24px; }
+.modal.open .modal__panel { transform: translate(-50%, -50%); opacity: 1; }
+.modal__close { position: absolute; top: 20px; right: 20px; width: 42px; height: 42px; border-radius: 10px;
+  border: 1px solid var(--line); background: rgba(10,14,39,.7); color: var(--text); font-size: 20px; cursor: pointer; z-index: 2; }
+.modal__hero { height: 180px; border-radius: 24px 24px 0 0; position: relative; overflow: hidden; display: grid; place-items: center; }
+.modal__num { font-family: var(--mono); font-size: 80px; font-weight: 600; }
+.modal__in { padding: var(--xl) var(--2xl) var(--2xl); }
+.modal__in h2 { font-size: 32px; margin-bottom: 8px; }
+.modal__meta { display: flex; gap: var(--xl); margin: var(--md) 0 var(--lg); flex-wrap: wrap; }
+.modal__meta div span { display: block; font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--faint); }
+.modal__meta div b { font-size: 15px; }
+.modal__in p { color: var(--dim); line-height: 1.75; }
+.modal__hl { list-style: none; padding: 0; margin: var(--lg) 0; display: flex; flex-direction: column; gap: 12px; }
+.modal__hl li { display: flex; gap: 12px; align-items: flex-start; color: var(--text); font-size: 15px; }
+.modal__hl li svg { flex-shrink: 0; margin-top: 3px; color: var(--accent); }
+.modal__actions { display: flex; gap: 12px; margin-top: var(--xl); flex-wrap: wrap; }
+@media (max-width: 760px) { .grid { grid-template-columns: 1fr; } .modal__in { padding: var(--xl); } }

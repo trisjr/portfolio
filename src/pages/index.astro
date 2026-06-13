@@ -1,11 +1,232 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+import Layout from "../layouts/Layout.astro";
+import "../styles/pages/home.css";
 ---
 
-<Layout>
-	<Welcome />
+<Layout title="TrisJr — Full-Stack Developer" active="home">
+    <main>
+        <!-- HERO -->
+        <header class="hero wrap" data-screen-label="Hero">
+            <div class="hero__grid">
+                <div>
+                    <p class="kicker reveal">Full-Stack Developer · Digital Architect</p>
+                    <h1 class="hero__title reveal" data-d="1">
+                        Building digital<br>worlds through
+                        <span class="hero__roles"><span id="role" class="gradient-text">code</span></span>
+                    </h1>
+                    <p class="hero__sub reveal" data-d="2">
+                        I'm <strong style="color:var(--text)">TrisJr</strong> — I architect and ship resilient web
+                        platforms,
+                        from pixel-tuned interfaces to the systems humming beneath them.
+                    </p>
+                    <div class="hero__cta reveal" data-d="3">
+                        <a class="btn btn--primary" href="/projects">
+                            Explore my work
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M5 12h14M13 6l6 6-6 6"/>
+                            </svg>
+                        </a>
+                        <a class="btn btn--ghost" href="/contact">Start a collaboration</a>
+                    </div>
+                    <div class="hero__stats reveal" data-d="4">
+                        <div class="stat"><b><span data-count="7"
+                                                   data-suffix="+">0</span></b><span>Years building</span></div>
+                        <div class="stat"><b><span data-count="48"
+                                                   data-suffix="+">0</span></b><span>Projects shipped</span></div>
+                        <div class="stat"><b><span data-count="12"
+                                                   data-suffix="">0</span></b><span>Open-source repos</span></div>
+                    </div>
+                </div>
+                <div class="hero__media reveal" data-d="2">
+                    <div class="card term">
+                        <div class="term__bar">
+                            <span class="term__dot" style="background:#FF5F56"></span>
+                            <span class="term__dot" style="background:#FFBD2E"></span>
+                            <span class="term__dot" style="background:#27C93F"></span>
+                            <span class="term__title">~/trisjr/profile.ts</span>
+                        </div>
+                        <div class="term__body">
+                            <div class="ln"><span class="k">const</span> <span class="f">trisjr</span> = &#123;</div>
+                            <div class="ln"> role: <span class="s">"Full-Stack Developer"</span>,</div>
+                            <div class="ln"> stack: [<span class="s">"TypeScript"</span>, <span class="s">"Rust"</span>,
+                                <span class="s">"Go"</span>],
+                            </div>
+                            <div class="ln"> focus: <span class="s">"realtime · 3D · DX"</span>,</div>
+                            <div class="ln"> coffee: <span class="n">Infinity</span>,</div>
+                            <div class="ln"><span class="f">ship</span>: () => <span class="s">"🚀"</span>,</div>
+                            <div class="ln">&#125;;</div>
+                            <div class="ln"><span class="c">// currently online — open to work</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="scroll-ind"><span class="mouse"></span>SCROLL</div>
+        </header>
+
+        <!-- ABOUT PREVIEW -->
+        <section class="section wrap" data-screen-label="About preview">
+            <div class="about">
+                <div class="reveal">
+                    <div class="avatar">
+                        <div class="avatar__ring"></div>
+                        <div class="avatar__img"><span>T</span></div>
+                    </div>
+                </div>
+                <div>
+                    <p class="kicker reveal">// whoami</p>
+                    <h2 class="section-title h-glow reveal" data-d="1">A developer who treats interfaces like
+                        architecture.</h2>
+                    <p class="section-sub reveal" data-d="2">
+                        I've spent the last seven years turning ambiguous problems into systems people actually
+                        enjoy using. I care about the details nobody notices — the 60fps scroll, the form that
+                        never loses your input, the API that fails gracefully. Equal parts engineer and designer.
+                    </p>
+                    <div class="about__tags reveal" data-d="3">
+                        <span class="chip chip--on">TypeScript</span>
+                        <span class="chip chip--on">React</span>
+                        <span class="chip">Node</span>
+                        <span class="chip">Rust</span>
+                        <span class="chip">WebGL</span>
+                        <span class="chip">PostgreSQL</span>
+                        <span class="chip">AWS</span>
+                    </div>
+                    <div style="margin-top:var(--xl)" class="reveal" data-d="4">
+                        <a class="arrow-link" href="/about">More about me
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                 stroke-width="2">
+                                <path d="M5 12h14M13 6l6 6-6 6"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FEATURED -->
+        <section class="section wrap" data-screen-label="Featured projects">
+            <div class="feat-head">
+                <div>
+                    <p class="kicker reveal">Selected work</p>
+                    <h2 class="section-title h-glow reveal" data-d="1">Featured projects</h2>
+                </div>
+                <a class="arrow-link reveal" data-d="2" href="/projects">View all projects
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M5 12h14M13 6l6 6-6 6"/>
+                    </svg>
+                </a>
+            </div>
+            <div class="pgrid" id="feat"></div>
+        </section>
+
+        <!-- SKILLS PREVIEW -->
+        <section class="section section--tight wrap" data-screen-label="Skills">
+            <p class="kicker reveal">Capabilities</p>
+            <h2 class="section-title h-glow reveal" data-d="1" style="margin-bottom:var(--2xl)">The stack I build
+                with</h2>
+            <div class="skbar">
+                <div class="skcat reveal" data-d="1"><h4>Frontend</h4>
+                    <ul>
+                        <li>React / Next.js</li>
+                        <li>TypeScript</li>
+                        <li>WebGL / Three.js</li>
+                        <li>Tailwind / CSS</li>
+                    </ul>
+                </div>
+                <div class="skcat reveal" data-d="2"><h4>Backend</h4>
+                    <ul>
+                        <li>Node / Bun</li>
+                        <li>Rust / Go</li>
+                        <li>PostgreSQL</li>
+                        <li>Redis / Kafka</li>
+                    </ul>
+                </div>
+                <div class="skcat reveal" data-d="3"><h4>Infra</h4>
+                    <ul>
+                        <li>AWS / GCP</li>
+                        <li>Docker / K8s</li>
+                        <li>Terraform</li>
+                        <li>CI/CD</li>
+                    </ul>
+                </div>
+                <div class="skcat reveal" data-d="4"><h4>Craft</h4>
+                    <ul>
+                        <li>System design</li>
+                        <li>UX / motion</li>
+                        <li>Observability</li>
+                        <li>Mentoring</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA -->
+        <section class="section wrap" data-screen-label="CTA">
+            <div class="cta reveal">
+                <p class="kicker" style="justify-content:center">Open to new missions</p>
+                <h2 class="gradient-text">Ready to collaborate?</h2>
+                <p>Whether it's a greenfield product, a gnarly performance problem, or a system that needs rethinking —
+                    let's build something worth remembering.</p>
+                <a class="btn btn--primary" href="/contact">
+                    Start a conversation
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M5 12h14M13 6l6 6-6 6"/>
+                    </svg>
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <script is:inline src="/assets/projects-data.js" slot="data"></script>
+    <script is:inline slot="scripts">
+      // role rotator
+      (function () {
+        const el = document.getElementById("role");
+        if (!el) return;
+        const words = ["code", "design", "systems", "pixels", "real-time"];
+        const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (reduce) return;
+        let wi = 0, ci = 0, del = false;
+
+        function tick() {
+          const w = words[wi];
+          el.textContent = del ? w.slice(0, --ci) : w.slice(0, ++ci);
+          let wait = del ? 55 : 95;
+          if (!del && ci === w.length) {
+            wait = 1700;
+            del = true;
+          } else if (del && ci === 0) {
+            del = false;
+            wi = (wi + 1) % words.length;
+            wait = 350;
+          }
+          setTimeout(tick, wait);
+        }
+
+        setTimeout(tick, 1400);
+      })();
+      // featured projects
+      (function () {
+        const host = document.getElementById("feat");
+        if (!host || !window.PROJECTS) return;
+        const tints = ["rgba(0,217,255,.10)", "rgba(187,134,252,.10)", "rgba(255,0,110,.08)"];
+        PROJECTS.filter(p => p.featured).slice(0, 3).forEach((p, i) => {
+          const a = document.createElement("a");
+          a.href = "/projects#" + p.id;
+          a.className = "card pcard reveal";
+          a.dataset.d = i + 1;
+          a.innerHTML = `
+          <div class="pcard__thumb" style="background:linear-gradient(140deg,${tints[i % 3]},transparent)">
+            <div class="pcard__glow" style="background:radial-gradient(60% 80% at 70% 20%,${tints[i % 3]},transparent)"></div>
+            <span class="pcard__num">0${i + 1}</span>
+          </div>
+          <div class="pcard__body">
+            <span class="pcard__cat">${p.category}</span>
+            <h3>${p.title}</h3>
+            <p>${p.tagline}</p>
+            <div class="chips">${p.stack.slice(0, 3).map(s => `<span class="chip">${s}</span>`).join("")}</div>
+          </div>`;
+          host.appendChild(a);
+        });
+      })();
+    </script>
 </Layout>
