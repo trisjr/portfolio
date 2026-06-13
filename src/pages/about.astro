@@ -1,6 +1,9 @@
 ---
+import { getEntry } from "astro:content";
 import Layout from "../layouts/Layout.astro";
 import "../styles/pages/about.css";
+
+const me = (await getEntry("profile", "me"))!.data;
 ---
 
 <Layout title="About — TrisJr" active="about">
@@ -8,18 +11,15 @@ import "../styles/pages/about.css";
         <section class="wrap page-head" data-screen-label="About intro">
             <div class="intro">
                 <div class="reveal">
-                    <div class="portrait"><span>T</span><span class="dot"></span></div>
+                    <div class="portrait"><img src={me.avatar} alt={me.name} class="portrait__photo" /><span class="dot"></span></div>
                 </div>
                 <div>
                     <p class="kicker reveal">// whoami --verbose</p>
-                    <h1 class="h-glow reveal" data-d="1">I'm TrisJr.<br>I build the <span class="gradient-text">unseen machinery</span>.
+                    <h1 class="h-glow reveal" data-d="1">I'm {me.name}.<br>I build the <span class="gradient-text">unseen machinery</span>.
                     </h1>
-                    <p class="reveal" data-d="2">For seven years I've lived at the seam between design and engineering —
-                        the place where a beautiful interface meets the messy reality of distributed systems. I started
-                        as a frontend dev obsessed with animation, then fell down the rabbit hole of <strong>real-time
-                            infrastructure</strong> and never climbed back out.</p>
-                    <p class="reveal" data-d="3">Today I lead engineering on products where milliseconds and pixels
-                        matter equally. I'm happiest with a hard problem, a blank editor, and far too much coffee.</p>
+                    {me.aboutBio.map((para, i) => (
+                        <p class="reveal" data-d={i + 2}>{para}</p>
+                    ))}
                     <div class="hero__cta reveal" data-d="4" style="display:flex;gap:14px;margin-top:var(--lg)">
                         <a class="btn btn--primary" href="/contact">Work with me</a>
                         <a class="btn btn--ghost" href="#" download>Download CV</a>
@@ -35,7 +35,7 @@ import "../styles/pages/about.css";
             <p class="section-sub reveal" data-d="2" style="margin-bottom:var(--2xl)">Hover any node to light up the
                 network. Bigger orbs are deeper specialties.</p>
             <div class="card const-wrap reveal" data-d="2" style="padding:var(--lg)">
-                <div class="const" id="const">
+                <div class="const" id="const" data-nodes={JSON.stringify(me.constellation.nodes)} data-links={JSON.stringify(me.constellation.links)}>
                     <svg id="constLines"></svg>
                 </div>
             </div>
@@ -45,7 +45,7 @@ import "../styles/pages/about.css";
         <section class="section wrap" data-screen-label="Experience timeline">
             <p class="kicker reveal">Trajectory</p>
             <h2 class="section-title h-glow reveal" data-d="1" style="margin-bottom:var(--xl)">Experience log</h2>
-            <div class="timeline" id="timeline"></div>
+            <div class="timeline" id="timeline" data-jobs={JSON.stringify(me.jobs)}></div>
         </section>
 
         <!-- VALUES -->
@@ -61,9 +61,8 @@ import "../styles/pages/about.css";
                             <circle cx="12" cy="12" r="9"/>
                         </svg>
                     </div>
-                    <h4>Speed is a feature</h4>
-                    <p>If it isn't fast, it isn't finished. Performance is designed in from the first commit, not bolted
-                        on later.</p>
+                    <h4>{me.values[0].title}</h4>
+                    <p>{me.values[0].desc}</p>
                 </div>
                 <div class="card value reveal" data-d="2">
                     <div class="ico">
@@ -73,9 +72,8 @@ import "../styles/pages/about.css";
                             <path d="M9 9h6v6H9z"/>
                         </svg>
                     </div>
-                    <h4>Systems over hacks</h4>
-                    <p>I'd rather spend a day on the right abstraction than a week firefighting the wrong one. Build it
-                        so it bends, not breaks.</p>
+                    <h4>{me.values[1].title}</h4>
+                    <p>{me.values[1].desc}</p>
                 </div>
                 <div class="card value reveal" data-d="3">
                     <div class="ico">
@@ -85,9 +83,8 @@ import "../styles/pages/about.css";
                             <path d="M12 8v4l3 2"/>
                         </svg>
                     </div>
-                    <h4>Ship, then sharpen</h4>
-                    <p>Real feedback beats imagined perfection. Get it in front of people, measure, and iterate
-                        relentlessly.</p>
+                    <h4>{me.values[2].title}</h4>
+                    <p>{me.values[2].desc}</p>
                 </div>
             </div>
         </section>
@@ -96,25 +93,10 @@ import "../styles/pages/about.css";
     <script is:inline slot="scripts">
       (function () {
         // ---- skill constellation ----
-        const skills = [{l: "TypeScript", x: 50, y: 50, s: "lg"}, {l: "React", x: 24, y: 26, s: "md"}, {
-          l: "Rust",
-          x: 76,
-          y: 28,
-          s: "md"
-        }, {l: "WebGL", x: 18, y: 64, s: "sm"}, {l: "Node", x: 80, y: 66, s: "md"}, {
-          l: "Postgres",
-          x: 50,
-          y: 84,
-          s: "sm"
-        }, {l: "AWS", x: 36, y: 82, s: "sm"}, {l: "Go", x: 64, y: 82, s: "sm"}, {
-          l: "Three.js",
-          x: 30,
-          y: 46,
-          s: "sm"
-        }, {l: "K8s", x: 70, y: 50, s: "sm"},];
-        const links = [[0, 1], [0, 2], [0, 4], [0, 8], [0, 9], [1, 3], [1, 8], [2, 4], [2, 7], [4, 5], [4, 9], [3, 6], [6, 5], [7, 5]];
         const cont = document.getElementById("const");
         const svg = document.getElementById("constLines");
+        const skills = JSON.parse(cont.dataset.nodes || "[]");
+        const links = JSON.parse(cont.dataset.links || "[]");
         skills.forEach((sk, i) => {
           const n = document.createElement("div");
           n.className = "node node--" + sk.s;
@@ -153,28 +135,8 @@ import "../styles/pages/about.css";
         });
 
         // ---- timeline ----
-        const jobs = [{
-          yr: "2023 — Now",
-          role: "Principal Engineer",
-          org: "Nebula Labs · Remote",
-          desc: "Lead the realtime platform team. Architected the sync core powering 10k concurrent collaborators and mentor a team of six."
-        }, {
-          yr: "2020 — 2023",
-          role: "Senior Full-Stack Engineer",
-          org: "Atlas Systems · Berlin",
-          desc: "Built the data visualization stack and ingestion pipeline behind a planet-scale observability product. Owned both the WebGL renderer and the query layer."
-        }, {
-          yr: "2018 — 2020",
-          role: "Frontend Engineer",
-          org: "Synth Studio · Lisbon",
-          desc: "Shipped the design system and component library still used across the company's products. Fell in love with motion and accessibility."
-        }, {
-          yr: "2017 — 2018",
-          role: "Freelance Developer",
-          org: "Self-employed",
-          desc: "Built websites, tools, and the occasional game for clients across three continents. Learned how to talk to humans about code."
-        },];
         const tl = document.getElementById("timeline");
+        const jobs = JSON.parse(tl.dataset.jobs || "[]");
         jobs.forEach((j, i) => {
           const el = document.createElement("div");
           el.className = "tl-item reveal";

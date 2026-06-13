@@ -1,0 +1,98 @@
+---
+import { getCollection } from "astro:content";
+import Layout from "../../layouts/Layout.astro";
+import "../../styles/pages/blog.css";
+
+const posts = (await getCollection("blog")).sort(
+    (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+
+const fmtDate = (d: Date) =>
+    d.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+
+const tints = ["0,217,255", "187,134,252", "0,245,255", "255,0,110"];
+const feature = posts[0];
+const rest = posts.slice(1);
+---
+
+<Layout title="Blog — TrisJr" active="blog">
+    <main>
+        <section class="wrap page-head" data-screen-label="Blog header">
+            <p class="kicker reveal">// transmissions</p>
+            <h1 class="h-glow reveal" data-d="1">Notes from <span class="gradient-text">the terminal</span></h1>
+            <p class="reveal" data-d="2">Essays on real-time systems, the browser as a platform, and the craft of
+                building software that feels good to use.</p>
+        </section>
+
+        <section class="wrap">
+            <a class="card feature reveal" href={`/blog/${feature.id}`}>
+                <div class="feature__viz" style="background:radial-gradient(80% 100% at 30% 30%,rgba(0,217,255,.16),transparent)">
+                    <pre>fn merge(a, b) &#123;
+  reconcile(a, b)
+    .resolve()
+    .broadcast()
+&#125;</pre>
+                </div>
+                <div class="feature__body">
+                    <span class="tag">Featured · {feature.data.cat}</span>
+                    <h2>{feature.data.title}</h2>
+                    <p>{feature.data.excerpt}</p>
+                    <div class="post-meta">
+                        <span>{fmtDate(feature.data.pubDate)}</span><span>·</span><span>{feature.data.read} read</span>
+                        <span class="read-more">Read article →</span>
+                    </div>
+                </div>
+            </a>
+        </section>
+
+        <section class="wrap section--tight">
+            <h2 class="section-title h-glow reveal" style="font-size:28px;margin-bottom:var(--xl)">More writing</h2>
+            <div class="posts" id="posts">
+                {rest.map((a, i) => {
+                    const t = tints[(i + 1) % tints.length];
+                    return (
+                        <a class="card post reveal" data-d={(i % 3) + 1} href={`/blog/${a.id}`}>
+                            <div class="post__viz" style={`background:radial-gradient(70% 90% at 60% 20%,rgba(${t},.16),transparent)`}>
+                                <code style={`color:rgba(${t},.7)`}>{a.data.code}</code>
+                            </div>
+                            <div class="post__body">
+                                <span class="tag">{a.data.cat}</span>
+                                <h3>{a.data.title}</h3>
+                                <p>{a.data.excerpt}</p>
+                                <div class="post-meta"><span>{fmtDate(a.data.pubDate)}</span><span>·</span><span>{a.data.read}</span></div>
+                            </div>
+                        </a>
+                    );
+                })}
+            </div>
+        </section>
+
+        <section class="wrap" style="padding-bottom:var(--4xl)">
+            <div class="card news reveal">
+                <div>
+                    <p class="kicker">Signal, not noise</p>
+                    <h3>Join the transmission</h3>
+                    <p>One email when I publish something worth your time. No spam, no tracking pixels, ever.</p>
+                </div>
+                <form class="news__form" id="news">
+                    <input type="email" placeholder="you@domain.dev" aria-label="Email" required>
+                    <button class="btn btn--primary" type="submit">Subscribe</button>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <script is:inline slot="scripts">
+      (function () {
+        const news = document.getElementById("news");
+        news.addEventListener("submit", e => {
+          e.preventDefault();
+          const btn = news.querySelector("button");
+          btn.textContent = "✓ Subscribed";
+          news.querySelector("input").value = "";
+          setTimeout(() => btn.textContent = "Subscribe", 2600);
+        });
+        if (window.__revealInView) window.__revealInView();
+      })();
+    </script>
+</Layout>

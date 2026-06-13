@@ -38,13 +38,13 @@
   font-family: var(--display); font-size: clamp(19px, 2.4vw, 24px); line-height: 1.5; color: var(--text); font-weight: 500; }
 .prose blockquote::before { content: "\201C"; position: absolute; top: -10px; left: 14px; font-size: 60px;
   color: rgba(var(--accent-rgb),.3); font-family: var(--display); }
-.prose pre.code { background: var(--bg-deep); border: 1px solid var(--line); border-radius: 14px;
-  padding: var(--lg) var(--xl); overflow-x: auto; margin: var(--xl) 0; position: relative; }
-.prose pre.code code { font-family: var(--mono); font-size: 14px; line-height: 1.8; color: #C7D0E0; white-space: pre; }
-.prose pre.code .lang { position: absolute; top: 10px; right: 14px; font-family: var(--mono); font-size: 10px;
-  letter-spacing: .15em; text-transform: uppercase; color: var(--faint); }
-.prose pre.code .kw { color: var(--purple); } .prose pre.code .str { color: #9DE89D; }
-.prose pre.code .fn { color: var(--accent); } .prose pre.code .cm { color: var(--faint); }
+/* code blocks — Shiki output (.astro-code); token colors come from the theme inline */
+.prose pre.astro-code { background: var(--bg-deep) !important; border: 1px solid var(--line); border-radius: 14px;
+  padding: var(--lg) var(--xl); overflow-x: auto; margin: var(--xl) 0; position: relative;
+  font-family: var(--mono); font-size: 14px; line-height: 1.8; }
+.prose pre.astro-code code { font-family: var(--mono); white-space: pre; }
+.prose :not(pre) > code { font-family: var(--mono); font-size: .9em; background: var(--bg-deep);
+  border: 1px solid var(--line); border-radius: 6px; padding: .1em .4em; color: #C7D0E0; }
 
 /* tags + share */
 .article-foot { max-width: 720px; margin: var(--3xl) auto 0; padding-top: var(--xl); border-top: 1px solid var(--line); }
