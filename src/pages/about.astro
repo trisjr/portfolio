@@ -1,6 +1,7 @@
 ---
 import { getCollection, getEntry } from "astro:content";
 import Layout from "../layouts/Layout.astro";
+import { url } from "../lib/path";
 import "../styles/pages/about.css";
 
 const me = (await getEntry("profile", "me"))!.data;
@@ -32,7 +33,7 @@ const timeline = (await getCollection("projects"))
         <section class="wrap page-head" data-screen-label="About intro">
             <div class="intro">
                 <div class="reveal">
-                    <div class="portrait"><img src={me.avatar} alt={me.name} class="portrait__photo" /><span class="dot"></span></div>
+                    <div class="portrait"><img src={url(me.avatar)} alt={me.name} class="portrait__photo" /><span class="dot"></span></div>
                 </div>
                 <div>
                     <p class="kicker reveal">// whoami --verbose</p>
@@ -42,7 +43,7 @@ const timeline = (await getCollection("projects"))
                         <p class="reveal" data-d={i + 2}>{para}</p>
                     ))}
                     <div class="hero__cta reveal" data-d="4" style="display:flex;gap:14px;margin-top:var(--lg)">
-                        <a class="btn btn--primary" href="/contact">Work with me</a>
+                        <a class="btn btn--primary" href={url("/contact")}>Work with me</a>
                         <a class="btn btn--ghost" href="#" download>Download CV</a>
                     </div>
                 </div>

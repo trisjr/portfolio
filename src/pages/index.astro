@@ -1,6 +1,7 @@
 ---
 import { getCollection, getEntry } from "astro:content";
 import Layout from "../layouts/Layout.astro";
+import { url } from "../lib/path";
 import "../styles/pages/home.css";
 
 const me = (await getEntry("profile", "me"))!.data;
@@ -29,13 +30,13 @@ const featured = (await getCollection("projects"))
                     </h1>
                     <p class="hero__sub reveal" data-d="2">{me.heroBio}</p>
                     <div class="hero__cta reveal" data-d="3">
-                        <a class="btn btn--primary" href="/projects">
+                        <a class="btn btn--primary" href={url("/projects")}>
                             Explore my work
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M5 12h14M13 6l6 6-6 6"/>
                             </svg>
                         </a>
-                        <a class="btn btn--ghost" href="/contact">Start a collaboration</a>
+                        <a class="btn btn--ghost" href={url("/contact")}>Start a collaboration</a>
                     </div>
                     <div class="hero__stats reveal" data-d="4">
                         {me.stats.map((s) => (
@@ -75,7 +76,7 @@ const featured = (await getCollection("projects"))
                 <div class="reveal">
                     <div class="avatar">
                         <div class="avatar__ring"></div>
-                        <div class="avatar__img"><img src={me.avatar} alt={me.name} class="avatar__photo" /></div>
+                        <div class="avatar__img"><img src={url(me.avatar)} alt={me.name} class="avatar__photo" /></div>
                     </div>
                 </div>
                 <div>
@@ -88,7 +89,7 @@ const featured = (await getCollection("projects"))
                         ))}
                     </div>
                     <div style="margin-top:var(--xl)" class="reveal" data-d="4">
-                        <a class="arrow-link" href="/about">More about me
+                        <a class="arrow-link" href={url("/about")}>More about me
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                  stroke-width="2">
                                 <path d="M5 12h14M13 6l6 6-6 6"/>
@@ -106,7 +107,7 @@ const featured = (await getCollection("projects"))
                     <p class="kicker reveal">Selected work</p>
                     <h2 class="section-title h-glow reveal" data-d="1">Featured projects</h2>
                 </div>
-                <a class="arrow-link reveal" data-d="2" href="/projects">View all projects
+                <a class="arrow-link reveal" data-d="2" href={url("/projects")}>View all projects
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M5 12h14M13 6l6 6-6 6"/>
                     </svg>
@@ -114,7 +115,7 @@ const featured = (await getCollection("projects"))
             </div>
             <div class="pgrid" id="feat">
                 {featured.map((p, i) => (
-                    <a class="card pcard reveal" data-d={i + 1} href={`/projects#${p.id}`}>
+                    <a class="card pcard reveal" data-d={i + 1} href={url(`/projects#${p.id}`)}>
                         <div class="pcard__thumb" style={`background:linear-gradient(140deg,${featTints[i % 3]},transparent)`}>
                             <div class="pcard__glow" style={`background:radial-gradient(60% 80% at 70% 20%,${featTints[i % 3]},transparent)`}></div>
                             <span class="pcard__num">0{i + 1}</span>
@@ -155,7 +156,7 @@ const featured = (await getCollection("projects"))
                 <h2 class="gradient-text">Ready to collaborate?</h2>
                 <p>Whether it's a greenfield product, a gnarly performance problem, or a system that needs rethinking —
                     let's build something worth remembering.</p>
-                <a class="btn btn--primary" href="/contact">
+                <a class="btn btn--primary" href={url("/contact")}>
                     Start a conversation
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M5 12h14M13 6l6 6-6 6"/>

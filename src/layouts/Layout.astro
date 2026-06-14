@@ -1,6 +1,7 @@
 ---
 import { getEntry } from "astro:content";
 import Icon from "../components/Icon.astro";
+import { url } from "../lib/path";
 import "../styles/space.css";
 
 interface Props {
@@ -20,8 +21,8 @@ const p = profile!.data;
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
-    <link rel="alternate icon" type="image/x-icon" href="/favicon.ico"/>
+    <link rel="icon" type="image/svg+xml" href={url("/favicon.svg")}/>
+    <link rel="alternate icon" type="image/x-icon" href={url("/favicon.ico")}/>
     <title>{title}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com"/>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -39,14 +40,14 @@ const p = profile!.data;
 
 <nav class="nav">
     <div class="nav__in">
-        <a class="brand" href="/"><span class="brand__mark">{p.initial}<b>_</b></span>{p.brand.first}<b>{p.brand.last}</b></a>
+        <a class="brand" href={url("/")}><span class="brand__mark">{p.initial}<b>_</b></span>{p.brand.first}<b>{p.brand.last}</b></a>
         <div class="nav__links">
-            <a href="/" class={isActive("home")}>Home</a>
-            <a href="/projects" class={isActive("projects")}>Projects</a>
-            <a href="/blog" class={isActive("blog")}>Blog</a>
-            <a href="/about" class={isActive("about")}>About</a>
+            <a href={url("/")} class={isActive("home")}>Home</a>
+            <a href={url("/projects")} class={isActive("projects")}>Projects</a>
+            <a href={url("/blog")} class={isActive("blog")}>Blog</a>
+            <a href={url("/about")} class={isActive("about")}>About</a>
         </div>
-        <a class="btn btn--primary nav__cta" href="/contact">Let's talk</a>
+        <a class="btn btn--primary nav__cta" href={url("/contact")}>Let's talk</a>
         <button class="nav__burger" aria-label="Open menu"><span></span><span></span><span></span></button>
     </div>
 </nav>
@@ -55,11 +56,11 @@ const p = profile!.data;
     <div class="drawer__scrim"></div>
     <aside class="drawer__panel">
         <button class="drawer__close" aria-label="Close menu">&times;</button>
-        <a href="/" class={isActive("home")}>Home</a>
-        <a href="/projects" class={isActive("projects")}>Projects</a>
-        <a href="/blog" class={isActive("blog")}>Blog</a>
-        <a href="/about" class={isActive("about")}>About</a>
-        <a href="/contact" class={isActive("contact")}>Contact</a>
+        <a href={url("/")} class={isActive("home")}>Home</a>
+        <a href={url("/projects")} class={isActive("projects")}>Projects</a>
+        <a href={url("/blog")} class={isActive("blog")}>Blog</a>
+        <a href={url("/about")} class={isActive("about")}>About</a>
+        <a href={url("/contact")} class={isActive("contact")}>Contact</a>
     </aside>
 </div>
 
@@ -69,7 +70,7 @@ const p = profile!.data;
     <div class="wrap">
         <div class="footer__grid">
             <div>
-                <a class="brand" href="/"><span class="brand__mark">{p.initial}<b>_</b></span>{p.brand.first}<b>{p.brand.last}</b></a>
+                <a class="brand" href={url("/")}><span class="brand__mark">{p.initial}<b>_</b></span>{p.brand.first}<b>{p.brand.last}</b></a>
                 <p style="color:var(--dim);max-width:34ch;margin:var(--md) 0 0;font-size:14.5px">{p.footerTagline}</p>
                 <div class="socials" style="margin-top:var(--lg)">
                     {p.socials.map((s: { url: string | URL | null | undefined; name: string | null | undefined; icon: string; }) => (
@@ -78,8 +79,8 @@ const p = profile!.data;
                 </div>
             </div>
             <div><h4>Navigate</h4>
-                <div class="footer__links"><a href="/">Home</a><a href="/projects">Projects</a><a
-                        href="/blog">Blog</a><a href="/about">About</a><a href="/contact">Contact</a></div>
+                <div class="footer__links"><a href={url("/")}>Home</a><a href={url("/projects")}>Projects</a><a
+                        href={url("/blog")}>Blog</a><a href={url("/about")}>About</a><a href={url("/contact")}>Contact</a></div>
             </div>
             <div><h4>Elsewhere</h4>
                 <div class="footer__links">{p.elsewhere.map((e: { url: string | URL | null | undefined; name: unknown; }) => <a href={e.url}>{e.name}</a>)}</div>
@@ -135,7 +136,7 @@ const p = profile!.data;
     </div>
 </div>
 
-<script is:inline src="/assets/space.js"></script>
+<script is:inline src={url("/assets/space.js")}></script>
 <slot name="scripts"/>
 </body>
 </html>

@@ -1,6 +1,7 @@
 ---
 import { getCollection, getEntry, render } from "astro:content";
 import Layout from "../../layouts/Layout.astro";
+import { url } from "../../lib/path";
 import "../../styles/pages/post.css";
 
 const me = (await getEntry("profile", "me"))!.data;
@@ -38,7 +39,7 @@ const xHandle = (me.socials.find((s) => s.name === "X")?.url ?? "")
     <div id="progress"></div>
     <main id="main" data-screen-label="Blog detail">
         <article class="wrap article-head">
-            <a class="crumb" href="/blog">
+            <a class="crumb" href={url("/blog")}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
                 All articles
             </a>
@@ -48,7 +49,7 @@ const xHandle = (me.socials.find((s) => s.name === "X")?.url ?? "")
                 <div class="article-meta">
                     <div class="author">
                         <span class="author__ava">
-                            <img src={me.avatar} alt={me.name} onerror="this.remove()" />
+                            <img src={url(me.avatar)} alt={me.name} onerror="this.remove()" />
                             {me.initial}
                         </span>
                         <div><b>{me.name}</b><span>{me.role}</span></div>
@@ -88,12 +89,12 @@ const xHandle = (me.socials.find((s) => s.name === "X")?.url ?? "")
 
             <nav class="pager">
                 {prev ? (
-                    <a class="prev" href={`/blog/${prev.id}`}><span class="dir">← Previous</span><span class="ttl">{prev.data.title}</span></a>
+                    <a class="prev" href={url(`/blog/${prev.id}`)}><span class="dir">← Previous</span><span class="ttl">{prev.data.title}</span></a>
                 ) : (
                     <span class="empty"></span>
                 )}
                 {next ? (
-                    <a class="next" href={`/blog/${next.id}`}><span class="dir">Next →</span><span class="ttl">{next.data.title}</span></a>
+                    <a class="next" href={url(`/blog/${next.id}`)}><span class="dir">Next →</span><span class="ttl">{next.data.title}</span></a>
                 ) : (
                     <span class="empty"></span>
                 )}
@@ -105,7 +106,7 @@ const xHandle = (me.socials.find((s) => s.name === "X")?.url ?? "")
                     {related.map((r, i) => {
                         const t = tints[i % tints.length];
                         return (
-                            <a class="card rel" href={`/blog/${r.id}`}>
+                            <a class="card rel" href={url(`/blog/${r.id}`)}>
                                 <div class="rel__viz" style={`background:radial-gradient(70% 90% at 60% 20%,rgba(${t},.16),transparent)`}><code style={`color:rgba(${t},.7)`}>{r.data.code}</code></div>
                                 <div class="rel__body"><span class="tag">{r.data.cat}</span><h3>{r.data.title}</h3><div class="post-meta"><span>{fmtDate(r.data.pubDate)}</span><span>·</span><span>{r.data.read}</span></div></div>
                             </a>

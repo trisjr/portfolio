@@ -1,6 +1,7 @@
 ---
 import {getCollection} from "astro:content";
 import Layout from "../../layouts/Layout.astro";
+import { url } from "../../lib/path";
 import "../../styles/pages/blog.css";
 
 const posts = (await getCollection("blog")).sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),);
@@ -22,7 +23,7 @@ const rest = posts.slice(1);
         </section>
 
         <section class="wrap">
-            <a class="card feature reveal" href={`/blog/${feature.id}`}>
+            <a class="card feature reveal" href={url(`/blog/${feature.id}`)}>
                 <div class="feature__viz"
                      style="background:radial-gradient(80% 100% at 30% 30%,rgba(0,217,255,.16),transparent)">
                     <pre>fn merge(a, b) &#123;
@@ -48,7 +49,7 @@ const rest = posts.slice(1);
             <div class="posts" id="posts">
               {rest.map((a, i) => {
                 const t = tints[(i + 1) % tints.length];
-                return (<a class="card post reveal" data-d={(i % 3) + 1} href={`/blog/${a.id}`}>
+                return (<a class="card post reveal" data-d={(i % 3) + 1} href={url(`/blog/${a.id}`)}>
                             <div class="post__viz"
                                  style={`background:radial-gradient(70% 90% at 60% 20%,rgba(${t},.16),transparent)`}>
                                 <code style={`color:rgba(${t},.7)`}>{a.data.code}</code>
