@@ -5,4 +5,7 @@ import { defineConfig } from 'astro/config';
 export default defineConfig({
   site: 'https://trisjr.github.io',
   base: '/portfolio',
+  build: {
+    inlineStylesheets: 'always',
+  },
 });
