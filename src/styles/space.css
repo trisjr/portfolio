@@ -177,7 +177,8 @@ main {
 .wrap {
     max-width: var(--maxw);
     margin: 0 auto;
-    padding: 0 var(--lg);
+    padding-left: var(--lg);
+    padding-right: var(--lg);
 }
 
 .section {
