@@ -106,9 +106,10 @@ const cats = [
         </template>
     ))}
 
-    <script is:inline slot="scripts">
-      (function () {
+    <script slot="scripts">
+      document.addEventListener("astro:page-load", () => {
         const grid = document.getElementById("grid");
+        if (!grid) return;
         const filtersEl = document.getElementById("filters");
         let active = "All";
 
@@ -157,9 +158,11 @@ const cats = [
         grid.querySelectorAll(".proj").forEach(card =>
           card.addEventListener("click", () => openModal(card.dataset.id)));
         modal.querySelectorAll("[data-close]").forEach(el => el.addEventListener("click", closeModal));
+        const ac = new AbortController();
         document.addEventListener("keydown", e => {
           if (e.key === "Escape") closeModal();
-        });
+        }, { signal: ac.signal });
+        document.addEventListener("astro:before-swap", () => { ac.abort(); document.body.style.overflow = ""; }, { once: true });
 
         render();
         // deep link
@@ -167,6 +170,6 @@ const cats = [
           const id = location.hash.slice(1);
           if (document.querySelector(`template[data-modal-id="${id}"]`)) openModal(id);
         }
-      })();
+      });
     </script>
 </Layout>

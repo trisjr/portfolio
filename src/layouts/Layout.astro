@@ -1,5 +1,6 @@
 ---
 import { getEntry } from "astro:content";
+import { ClientRouter } from "astro:transitions";
 import Icon from "../components/Icon.astro";
 import { url } from "../lib/path";
 import "../styles/space.css";
@@ -83,13 +84,16 @@ const personLd = {
             href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
             rel="stylesheet"
     />
+    <ClientRouter />
     <slot name="head"/>
 </head>
 <body>
-<canvas id="space-canvas"></canvas>
-<div class="bg-aura"></div>
-<div class="bg-grid"></div>
-<div class="scanlines"></div>
+<canvas id="space-canvas" transition:persist></canvas>
+<div class="bg-aura" transition:persist></div>
+<div class="bg-grid" transition:persist></div>
+<div class="scanlines" transition:persist></div>
+<div class="cursor-dot" transition:persist="cursor-dot"></div>
+<div class="cursor-ring" transition:persist="cursor-ring"></div>
 
 <nav class="nav">
     <div class="nav__in">

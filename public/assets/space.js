@@ -1,6 +1,14 @@
 /* ============================================================
    VIRTUAL SPACE — engine
    particle network · cursor · reveal · nav · tweaks
+
+   View Transitions aware:
+   - bootOnce() runs a single time; it owns the persisted canvas/cursor
+     and all global window/document listeners (which re-query fresh DOM
+     on every fire, so they survive body swaps without re-binding).
+   - bootPage() runs on every `astro:page-load` (initial load + each
+     client-side navigation); it re-binds handlers on per-page chrome
+     that ClientRouter swaps out, and repaints scroll-driven state.
    ============================================================ */
 (function () {
   "use strict";
@@ -117,12 +125,12 @@
     };
   })();
 
-  /* ---------- Custom cursor ---------- */
+  /* ---------- Custom cursor (static persisted elements) ---------- */
   function initCursor() {
     if (coarse) return;
-    const dot = document.createElement("div"); dot.className = "cursor-dot";
-    const ring = document.createElement("div"); ring.className = "cursor-ring";
-    document.body.append(dot, ring);
+    const dot = document.querySelector(".cursor-dot");
+    const ring = document.querySelector(".cursor-ring");
+    if (!dot || !ring) return;
     let rx = -50, ry = -50, mx = -50, my = -50;
     window.addEventListener("mousemove", (e) => {
       mx = e.clientX; my = e.clientY;
@@ -153,65 +161,43 @@
       if (r.top < vh * 0.92 && r.bottom > 0) el.classList.add("in");
     });
   }
-  function initReveal() {
-    if (reduce) {
-      document.querySelectorAll(".reveal").forEach((el) => el.classList.add("in"));
-      return;
-    }
-    let ticking = false;
-    const onScroll = () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => { revealInView(); ticking = false; });
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll, { passive: true });
-    // initial paint (next frame so layout is settled)
-    requestAnimationFrame(() => requestAnimationFrame(revealInView.bind(null, document)));
-    // guaranteed fallback: if anything throttles scroll/rAF, reveal everything
-    setTimeout(() => document.querySelectorAll(".reveal:not(.in)").forEach((el) => {
-      const r = el.getBoundingClientRect();
-      if (r.top < (window.innerHeight || 800)) el.classList.add("in");
-    }), 1200);
-    // expose for dynamically-injected content
-    window.__revealInView = revealInView;
-  }
 
   /* ---------- Count-up numbers ---------- */
-  function initCounters() {
-    const els = Array.from(document.querySelectorAll("[data-count]"));
-    if (!els.length) return;
-    const run = (el) => {
-      if (el.dataset.done) return; el.dataset.done = "1";
-      const end = parseFloat(el.dataset.count); const suf = el.dataset.suffix || "";
-      if (reduce) { el.textContent = end + suf; return; }
-      const dur = 1200, t0 = performance.now();
-      (function step(t) {
-        const p = Math.min(1, (t - t0) / dur);
-        const e = 1 - Math.pow(1 - p, 3);
-        const val = end % 1 ? (end * e).toFixed(1) : Math.round(end * e);
-        el.textContent = val + suf;
-        if (p < 1) requestAnimationFrame(step);
-      })(t0);
-    };
-    const check = () => {
-      const vh = window.innerHeight || document.documentElement.clientHeight;
-      els.forEach((el) => { const r = el.getBoundingClientRect(); if (r.top < vh * 0.9 && r.bottom > 0) run(el); });
-    };
-    window.addEventListener("scroll", check, { passive: true });
-    requestAnimationFrame(() => requestAnimationFrame(check));
+  function runCounter(el) {
+    if (el.dataset.done) return; el.dataset.done = "1";
+    const end = parseFloat(el.dataset.count); const suf = el.dataset.suffix || "";
+    if (reduce) { el.textContent = end + suf; return; }
+    const dur = 1200, t0 = performance.now();
+    (function step(t) {
+      const p = Math.min(1, (t - t0) / dur);
+      const e = 1 - Math.pow(1 - p, 3);
+      const val = end % 1 ? (end * e).toFixed(1) : Math.round(end * e);
+      el.textContent = val + suf;
+      if (p < 1) requestAnimationFrame(step);
+    })(t0);
+  }
+  function checkCounters() {
+    const vh = window.innerHeight || document.documentElement.clientHeight;
+    document.querySelectorAll("[data-count]").forEach((el) => {
+      const r = el.getBoundingClientRect();
+      if (r.top < vh * 0.9 && r.bottom > 0) runCounter(el);
+    });
   }
 
-  /* ---------- Nav / drawer / back-to-top ---------- */
-  function initChrome() {
+  /* ---------- Global scroll state (nav / back-to-top) ---------- */
+  function onScroll() {
+    const y = window.scrollY;
     const nav = document.querySelector(".nav");
     const totop = document.getElementById("totop");
-    const onScroll = () => {
-      const y = window.scrollY;
-      if (nav) nav.classList.toggle("scrolled", y > 24);
-      if (totop) totop.classList.toggle("show", y > 600);
-    };
-    window.addEventListener("scroll", onScroll, { passive: true }); onScroll();
+    if (nav) nav.classList.toggle("scrolled", y > 24);
+    if (totop) totop.classList.toggle("show", y > 600);
+    if (!reduce) revealInView();
+    checkCounters();
+  }
+
+  /* ---------- Per-page chrome bindings ---------- */
+  function bindChrome() {
+    const totop = document.getElementById("totop");
     if (totop) totop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" }));
 
     const burger = document.querySelector(".nav__burger");
@@ -226,7 +212,7 @@
   }
 
   /* ---------- Tweaks panel + host protocol ---------- */
-  function initTweaks() {
+  function bindTweaks() {
     const panel = document.getElementById("tweaks");
     if (!panel) return;
     const totop = document.getElementById("totop");
@@ -270,26 +256,67 @@
       show(false);
       try { window.parent.postMessage({ type: "__edit_mode_dismissed" }, "*"); } catch (e) {}
     });
+  }
+
+  /* ---------- boot: once vs per-page ---------- */
+  function bootOnce() {
+    if (window.__spaceOnce) return;
+    window.__spaceOnce = true;
+
+    PARTICLES.init();
+    initCursor();
+
+    // global listeners — they re-query fresh DOM on every fire, so they
+    // keep working after ClientRouter swaps the body. Bound exactly once.
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+
+    // host protocol (tweaks panel) — listen once; show()/panel resolved live.
     window.addEventListener("message", (e) => {
       const t = e && e.data && e.data.type;
-      if (t === "__activate_edit_mode") show(true);
-      else if (t === "__deactivate_edit_mode") show(false);
+      if (t !== "__activate_edit_mode" && t !== "__deactivate_edit_mode") return;
+      const panel = document.getElementById("tweaks");
+      if (!panel) return;
+      const on = t === "__activate_edit_mode";
+      panel.classList.toggle("show", on);
+      const totop = document.getElementById("totop");
+      const opener = document.getElementById("tw-open");
+      if (totop) totop.style.display = on ? "none" : "";
+      if (opener) opener.style.display = on ? "none" : "";
     });
+
+    // expose reveal helper for dynamically-injected content (per-page scripts)
+    window.__revealInView = revealInView;
+
+    // per-page boot: fires on initial load and after every client-side nav.
+    document.addEventListener("astro:page-load", bootPage);
+  }
+
+  function bootPage() {
+    applyTweaks();
+    bindChrome();
+    bindTweaks();
+
+    // initial reveal paint
+    if (reduce) {
+      document.querySelectorAll(".reveal").forEach((el) => el.classList.add("in"));
+    } else {
+      requestAnimationFrame(() => requestAnimationFrame(() => revealInView(document)));
+      // guaranteed fallback if scroll/rAF is throttled
+      setTimeout(() => document.querySelectorAll(".reveal:not(.in)").forEach((el) => {
+        const r = el.getBoundingClientRect();
+        if (r.top < (window.innerHeight || 800)) el.classList.add("in");
+      }), 1200);
+    }
+
+    // initial scroll-driven state + counters for the new page
+    onScroll();
+
+    // year stamp
+    document.querySelectorAll("[data-year]").forEach((e) => e.textContent = new Date().getFullYear());
+
     try { window.parent.postMessage({ type: "__edit_mode_available" }, "*"); } catch (e) {}
   }
 
-  /* ---------- boot ---------- */
-  function boot() {
-    applyTweaks();
-    PARTICLES.init();
-    initCursor();
-    initReveal();
-    initCounters();
-    initChrome();
-    initTweaks();
-    // year stamp
-    document.querySelectorAll("[data-year]").forEach((e) => e.textContent = new Date().getFullYear());
-  }
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
-  else boot();
+  bootOnce();
 })();

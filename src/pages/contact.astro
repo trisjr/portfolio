@@ -86,9 +86,10 @@ const me = (await getEntry("profile", "me"))!.data;
         </section>
     </main>
 
-    <script is:inline slot="scripts">
-      (function () {
+    <script slot="scripts">
+      document.addEventListener("astro:page-load", () => {
         const form = document.getElementById("contactForm");
+        if (!form) return;
         const fields = {
           name: el => el.value.trim().length > 1,
           email: el => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(el.value.trim()),
@@ -120,6 +121,6 @@ const me = (await getEntry("profile", "me"))!.data;
           document.getElementById("formBody").classList.add("hide");
           document.getElementById("sent").classList.add("show");
         });
-      })();
+      });
     </script>
 </Layout>

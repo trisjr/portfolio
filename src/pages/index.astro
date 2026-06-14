@@ -166,18 +166,20 @@ const featured = (await getCollection("projects"))
         </section>
     </main>
 
-    <script is:inline slot="scripts">
+    <script slot="scripts">
       // role rotator
-      (function () {
+      document.addEventListener("astro:page-load", () => {
         const el = document.getElementById("role");
         if (!el) return;
         const words = JSON.parse(el.dataset.words || "[]");
         if (!words.length) return;
         const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
         if (reduce) return;
-        let wi = 0, ci = 0, del = false;
+        let wi = 0, ci = 0, del = false, alive = true;
+        document.addEventListener("astro:before-swap", () => { alive = false; }, { once: true });
 
         function tick() {
+          if (!alive || !el.isConnected) return; // stop recursive loop on navigation
           const w = words[wi];
           el.textContent = del ? w.slice(0, --ci) : w.slice(0, ++ci);
           let wait = del ? 55 : 95;
@@ -193,6 +195,6 @@ const featured = (await getCollection("projects"))
         }
 
         setTimeout(tick, 1400);
-      })();
+      });
     </script>
 </Layout>

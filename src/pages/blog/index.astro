@@ -81,9 +81,10 @@ const rest = posts.slice(1);
         </section>
     </main>
 
-    <script is:inline slot="scripts">
-      (function () {
+    <script slot="scripts">
+      document.addEventListener("astro:page-load", () => {
         const news = document.getElementById("news");
+        if (!news) return;
         news.addEventListener("submit", e => {
           e.preventDefault();
           const btn = news.querySelector("button");
@@ -92,6 +93,6 @@ const rest = posts.slice(1);
           setTimeout(() => btn.textContent = "Subscribe", 2600);
         });
         if (window.__revealInView) window.__revealInView();
-      })();
+      });
     </script>
 </Layout>

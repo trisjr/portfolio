@@ -158,11 +158,12 @@ const hasCode = a.links.code && a.links.code !== "#";
         </div>
     </main>
 
-    <script is:inline slot="scripts">
-      (function () {
+    <script slot="scripts">
+      document.addEventListener("astro:page-load", () => {
         const main = document.getElementById("main");
+        if (!main) return;
         if (window.__revealInView) window.__revealInView(main);
         else main.querySelectorAll(".reveal").forEach(el => el.classList.add("in"));
-      })();
+      });
     </script>
 </Layout>
