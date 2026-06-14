@@ -6,6 +6,7 @@ year: "2024"
 startDate: "2024-05"
 endDate: "2024-11"
 role: Web Developer
+teamSize: 10
 stack: ["Python", "FastAPI", "NestJS", "Node.js", "PostgreSQL"]
 featured: false
 tint: "255,107,53"

@@ -13,11 +13,18 @@ const projects = defineCollection({
     endDate: z.string().optional(),
     current: z.boolean().default(false),
     role: z.string(),
+    teamSize: z.number().optional(),
     stack: z.array(z.string()),
     featured: z.boolean().default(false),
     tint: z.string(),
     order: z.number(),
     highlights: z.array(z.string()),
+    // Detailed breakdown grouped by area (e.g. Frontend / Backend); each area
+    // has its own bullet list. Falls back to `highlights` on the detail page
+    // when empty.
+    responsibilities: z
+      .array(z.object({ area: z.string(), items: z.array(z.string()) }))
+      .default([]),
     links: z.object({
       live: z.string().default("#"),
       code: z.string().default("#"),
@@ -108,6 +115,36 @@ const profile = defineCollection({
       ),
       status: z.string(),
     }),
+    // Corporate-style CV data, rendered on `/resume`. All optional so the rest
+    // of the site keeps working even if a field is omitted.
+    cv: z
+      .object({
+        designation: z.string(),
+        gender: z.string().optional(),
+        education: z.object({ degree: z.string(), school: z.string() }),
+        summary: z.array(z.string()).default([]),
+        // Technical-skills taxonomy (Programming Languages, Backend, ...).
+        technicalSkills: z
+          .array(z.object({ title: z.string(), items: z.array(z.string()) }))
+          .default([]),
+        softSkills: z.array(z.string()).default([]),
+        // Self-rated proficiency table; `level` is 1–5 per `proficiencyLegend`.
+        proficiency: z
+          .array(
+            z.object({
+              skill: z.string(),
+              level: z.number(),
+              experience: z.string(),
+              lastUsed: z.string(),
+            }),
+          )
+          .default([]),
+        proficiencyLegend: z.array(z.string()).default([]),
+        languages: z
+          .array(z.object({ name: z.string(), level: z.string() }))
+          .default([]),
+      })
+      .optional(),
   }),
 });
 

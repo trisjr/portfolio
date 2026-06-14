@@ -6,6 +6,7 @@ year: "2023"
 startDate: "2023-03"
 endDate: "2023-10"
 role: Web Developer
+teamSize: 8
 stack: ["React", "MUI", "GraphQL", "AWS"]
 featured: false
 tint: "227,66,52"

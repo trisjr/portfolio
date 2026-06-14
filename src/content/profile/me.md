@@ -101,6 +101,63 @@ contact:
     - { name: GitHub, icon: github, value: github.com/tenomad-company, url: "https://github.com/tenomad-company" }
     - { name: LinkedIn, icon: linkedin, value: in/trisjr, url: "https://www.linkedin.com/in/trisjr/" }
   status: Currently available · responds within 24h · UTC+7
+# Corporate-style CV (rendered on /resume). Structure & skill content adapted
+# from the reference doc; identity stays the TrisJr persona.
+cv:
+  designation: Full-Stack Developer
+  gender: Male
+  education:
+    degree: B.Sc. in Information Technology
+    school: Hue University of Sciences, Vietnam
+  summary:
+    - Programmer with 3+ years of experience building technically complex web applications using Java, NodeJS, NestJS, C#, ReactJS, VueJS and more.
+    - Backend development with Java, NodeJS, NestJS and C#; front-end development with ReactJS and VueJS.
+    - Comfortable across UI libraries and design systems — Ant Design, Tailwind, Material Design and Bootstrap.
+  technicalSkills:
+    - title: Programming Languages
+      items: ["C#", "Java", "NodeJS", "JavaScript", "TypeScript", "HTML", "CSS"]
+    - title: Backend Development
+      items: ["Node.js / Express / NestJS", "Java / Spring MVC / Spring Boot / JPA / Maven", ".NET Core / ASP.NET MVC / Web API", "RESTful API & Socket Server"]
+    - title: Frontend Development
+      items: ["ReactJS", "VueJS", "UI/UX Design"]
+    - title: Databases
+      items: ["MySQL", "SQL Server", "MongoDB", "PostgreSQL", "Redis"]
+    - title: Third-party Services
+      items: ["AWS (EC2, RDS, S3)", "Firebase (Auth, Firestore, FCM, Database)", "Stripe"]
+    - title: Version Control
+      items: ["Git", "SVN", "Bitbucket"]
+    - title: App Server / Middleware
+      items: ["Microsoft IIS", "Docker", "Nginx", "Apache"]
+    - title: Other Tools
+      items: ["Linux", "Jira", "Trello", "Slack", "Notion", "Figma"]
+    - title: Methodologies
+      items: ["Agile / Scrum"]
+  softSkills:
+    - Adapts to new tools and learns quickly
+    - Works well in high-pressure environments
+    - Good at listening, reading and writing in English
+    - Researches and works independently as well as in a team
+    - Communicates and reports clearly to stakeholders
+    - Experienced delivering projects in a Japanese work environment
+  proficiency:
+    - { skill: ReactJS, level: 3, experience: "3.5 Years", lastUsed: "2026" }
+    - { skill: HTML / CSS / SCSS, level: 3, experience: "3.5 Years", lastUsed: "2026" }
+    - { skill: JavaScript, level: 3, experience: "3 Years", lastUsed: "2026" }
+    - { skill: TypeScript, level: 3, experience: "3 Years", lastUsed: "2026" }
+    - { skill: VueJS, level: 3, experience: "2.5 Years", lastUsed: "2026" }
+    - { skill: NodeJS, level: 2, experience: "2 Years", lastUsed: "2026" }
+    - { skill: Java, level: 3, experience: "2.5 Years", lastUsed: "2023" }
+    - { skill: ".NET", level: 3, experience: "2 Years", lastUsed: "2023" }
+    - { skill: "C#", level: 2, experience: "1.5 Years", lastUsed: "2023" }
+  proficiencyLegend:
+    - "1 — Basic knowledge"
+    - "2 — Limited experience"
+    - "3 — Practical application"
+    - "4 — Applied theory"
+    - "5 — Recognized authority"
+  languages:
+    - { name: Vietnamese, level: Native }
+    - { name: English, level: Professional working }
 ---
 
 Single source of truth for TrisJr's personal content. Edit the frontmatter above

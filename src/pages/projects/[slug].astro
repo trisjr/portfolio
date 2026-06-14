@@ -1,0 +1,168 @@
+---
+import { getCollection, getEntry, render } from "astro:content";
+import Layout from "../../layouts/Layout.astro";
+import { url } from "../../lib/path";
+import "../../styles/pages/project.css";
+
+const me = (await getEntry("profile", "me"))!.data;
+
+export async function getStaticPaths() {
+    const projects = (await getCollection("projects")).sort(
+        (a, b) => a.data.order - b.data.order,
+    );
+    return projects.map((project, i) => ({
+        params: { slug: project.id },
+        props: {
+            project,
+            prev: projects[i - 1] ?? null,
+            next: projects[i + 1] ?? null,
+            related: projects.filter((_, j) => j !== i).slice(0, 3),
+        },
+    }));
+}
+
+const { project, prev, next, related } = Astro.props;
+const { Content } = await render(project);
+const a = project.data;
+
+// startDate/endDate use "YYYY-MM"; format to "Jun 2026".
+const fmtMonth = (s: string) => {
+    const [y, m] = s.split("-").map(Number);
+    return new Date(y, (m ?? 1) - 1).toLocaleDateString("en-US", {
+        month: "short",
+        year: "numeric",
+    });
+};
+const period = `${fmtMonth(a.startDate)} – ${
+    a.current ? "Present" : a.endDate ? fmtMonth(a.endDate) : "—"
+}`;
+
+const hasLive = a.links.live && a.links.live !== "#";
+const hasCode = a.links.code && a.links.code !== "#";
+---
+
+<Layout title={`${a.title} — ${me.name}`} active="projects" description={a.tagline} ogType="article">
+    <main id="main" data-screen-label="Project detail">
+        <section class="wrap project-head">
+            <a class="crumb" href={url("/projects")}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
+                All projects
+            </a>
+            <div class="reveal">
+                <span class="proj__cat" style={`color:rgb(${a.tint})`}>{a.category}</span>
+                <h1 class="h-glow">{a.title}</h1>
+                <p class="lead">{a.tagline}</p>
+            </div>
+        </section>
+
+        <div class="wrap">
+            <div class="project-banner reveal" style={`background:radial-gradient(80% 120% at 50% 0%,rgba(${a.tint},.22),transparent)`}>
+                <span class="ring" style={`border-color:rgba(${a.tint},.45)`}></span>
+                <span class="ring" style={`border-color:rgba(${a.tint},.7)`}></span>
+                <span class="core" style={`background:rgb(${a.tint});box-shadow:0 0 26px rgb(${a.tint})`}></span>
+                <span class="banner-mark" style={`color:rgba(${a.tint},.6)`}>{a.title[0]}</span>
+            </div>
+        </div>
+
+        <div class="wrap project-body">
+            <aside class="project-meta reveal">
+                <dl>
+                    <div><dt>Duration</dt><dd>{period}</dd></div>
+                    <div>
+                        <dt>Position</dt>
+                        <dd>{a.role}{a.teamSize && <span class="meta-sub">Team of {a.teamSize}</span>}</dd>
+                    </div>
+                    <div><dt>Status</dt><dd>{a.current ? "In progress" : "Shipped"}</dd></div>
+                </dl>
+                {(hasLive || hasCode) && (
+                    <div class="meta-actions">
+                        {hasLive && (
+                            <a class="btn btn--primary" href={a.links.live} target="_blank" rel="noopener">View live<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+                        )}
+                        {hasCode && (
+                            <a class="btn btn--ghost" href={a.links.code} target="_blank" rel="noopener">Source code</a>
+                        )}
+                    </div>
+                )}
+            </aside>
+
+            <article class="project-main">
+                <div class="prose reveal">
+                    <Content />
+                </div>
+
+                <section class="reveal">
+                    <h2 class="block-title">Responsibilities</h2>
+                    {a.responsibilities.length > 0 ? (
+                        <div class="resp">
+                            {a.responsibilities.map((r) => (
+                                <div class="resp__area">
+                                    <h3>{r.area}</h3>
+                                    <ul class="hl">
+                                        {r.items.map((it) => (
+                                            <li>
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>{it}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <ul class="hl">
+                            {a.highlights.map((h) => (
+                                <li>
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>{h}
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </section>
+
+                <section class="reveal">
+                    <h2 class="block-title">Stack</h2>
+                    <div class="chips">
+                        {a.stack.map((s) => <span class="chip chip--on">{s}</span>)}
+                    </div>
+                </section>
+            </article>
+        </div>
+
+        <div class="wrap">
+            <nav class="pager">
+                {prev ? (
+                    <a class="prev" href={url(`/projects/${prev.id}`)}><span class="dir">← Previous</span><span class="ttl">{prev.data.title}</span></a>
+                ) : (
+                    <span class="empty"></span>
+                )}
+                {next ? (
+                    <a class="next" href={url(`/projects/${next.id}`)}><span class="dir">Next →</span><span class="ttl">{next.data.title}</span></a>
+                ) : (
+                    <span class="empty"></span>
+                )}
+            </nav>
+
+            <section class="related">
+                <h2 class="section-title h-glow" style="font-size:26px">More work</h2>
+                <div class="rel-grid">
+                    {related.map((r) => (
+                        <a class="card rel" href={url(`/projects/${r.id}`)}>
+                            <div class="rel__viz" style={`background:radial-gradient(70% 90% at 50% 25%,rgba(${r.data.tint},.16),transparent)`}>
+                                <span class="rel__core" style={`background:rgb(${r.data.tint});box-shadow:0 0 16px rgb(${r.data.tint})`}></span>
+                            </div>
+                            <div class="rel__body"><span class="proj__cat" style={`color:rgb(${r.data.tint})`}>{r.data.category}</span><h3>{r.data.title}</h3><p>{r.data.tagline}</p></div>
+                        </a>
+                    ))}
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script is:inline slot="scripts">
+      (function () {
+        const main = document.getElementById("main");
+        if (window.__revealInView) window.__revealInView(main);
+        else main.querySelectorAll(".reveal").forEach(el => el.classList.add("in"));
+      })();
+    </script>
+</Layout>

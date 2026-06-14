@@ -3,16 +3,28 @@ import { getCollection, getEntry } from "astro:content";
 import { url } from "../lib/path";
 
 const me = (await getEntry("profile", "me"))!.data;
+const cv = me.cv;
 
-// Top projects as "selected work" — featured first, then by order.
-const projects = (await getCollection("projects"))
-  .sort((a, b) => a.data.order - b.data.order)
-  .sort((a, b) => Number(b.data.featured) - Number(a.data.featured))
-  .slice(0, 5);
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const fmtMonth = (d: string) => {
+  const [y, m] = d.trim().split("-");
+  return `${MONTHS[Number(m) - 1]} ${y}`;
+};
+const period = (p: { startDate: string; endDate?: string; current: boolean }) => {
+  const start = fmtMonth(p.startDate);
+  if (p.current) return `${start} — Now`;
+  if (p.endDate) return `${start} — ${fmtMonth(p.endDate)}`;
+  return start;
+};
+
+// Professional experience — the curated 11 projects, newest first.
+const projects = (await getCollection("projects")).sort((a, b) => a.data.order - b.data.order);
 
 const ogImageUrl = new URL(url("/og.png"), Astro.site);
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const title = `${me.name} — Résumé`;
+// Default filename the browser proposes when saving the print dialog as PDF.
+const cvFileName = `${me.name.replace(/\s+/g, "_")}_CV`;
 ---
 
 <!doctype html>
@@ -36,7 +48,7 @@ const title = `${me.name} — Résumé`;
     rel="stylesheet"
   />
 </head>
-<body>
+<body data-cv-name={cvFileName}>
   <button class="print-bar" onclick="window.print()" aria-label="Print or save as PDF">
     ⌘P · Save as PDF
   </button>
@@ -56,52 +68,110 @@ const title = `${me.name} — Résumé`;
       </ul>
     </header>
 
-    <section class="cv__section">
-      <h2>Experience</h2>
-      {me.jobs.map((j) => (
-        <div class="cv__entry">
-          <div class="cv__entry-head">
-            <strong>{j.role}</strong>
-            <span class="cv__yr">{j.yr}</span>
+    {cv && (
+      <section class="cv__section">
+        <h2>Personal Details</h2>
+        <dl class="cv__details">
+          <div><dt>Designation</dt><dd>{cv.designation}</dd></div>
+          {cv.gender && <div><dt>Gender</dt><dd>{cv.gender}</dd></div>}
+          <div><dt>Education</dt><dd>{cv.education.degree} — {cv.education.school}</dd></div>
+          {cv.languages.length > 0 && (
+            <div><dt>Languages</dt><dd>{cv.languages.map((l) => `${l.name} (${l.level})`).join(" · ")}</dd></div>
+          )}
+        </dl>
+      </section>
+    )}
+
+    {cv && (cv.summary.length > 0 || cv.technicalSkills.length > 0) && (
+      <section class="cv__section">
+        <h2>Professional Summary</h2>
+        {cv.summary.map((para) => <p class="cv__desc cv__summary-line">{para}</p>)}
+        {cv.technicalSkills.length > 0 && (
+          <div class="cv__skills cv__skills--tax">
+            {cv.technicalSkills.map((g) => (
+              <div class="cv__entry">
+                <strong>{g.title}</strong>
+                <span>{g.items.join(" · ")}</span>
+              </div>
+            ))}
           </div>
-          <p class="cv__org">{j.org}</p>
-          <p class="cv__desc">{j.desc}</p>
-        </div>
-      ))}
-    </section>
+        )}
+        {cv.softSkills.length > 0 && (
+          <div class="cv__soft">
+            <strong>Soft Skills</strong>
+            <ul>
+              {cv.softSkills.map((s) => <li>{s}</li>)}
+            </ul>
+          </div>
+        )}
+      </section>
+    )}
+
+    {cv && cv.proficiency.length > 0 && (
+      <section class="cv__section">
+        <h2>Technical Expertise &amp; Skills</h2>
+        <table class="cv__table">
+          <thead>
+            <tr><th>Skill</th><th>Proficiency</th><th>Experience</th><th>Last used</th></tr>
+          </thead>
+          <tbody>
+            {cv.proficiency.map((s) => (
+              <tr>
+                <td><strong>{s.skill}</strong></td>
+                <td>
+                  <span class="cv__bar" aria-hidden="true">
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <span class={n <= s.level ? "on" : ""}></span>
+                    ))}
+                  </span>
+                  <span class="cv__level">{s.level}/5</span>
+                </td>
+                <td>{s.experience}</td>
+                <td>{s.lastUsed}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {cv.proficiencyLegend.length > 0 && (
+          <p class="cv__legend">{cv.proficiencyLegend.join("   ·   ")}</p>
+        )}
+      </section>
+    )}
 
     <section class="cv__section">
-      <h2>Selected Work</h2>
-      {projects.map((p) => (
-        <div class="cv__entry">
-          <div class="cv__entry-head">
-            <strong>{p.data.title}</strong>
-            <span class="cv__yr">{p.data.category} · {p.data.year}</span>
-          </div>
-          <p class="cv__desc">{p.data.tagline}</p>
-          <p class="cv__stack">{p.data.stack.join(" · ")}</p>
-        </div>
-      ))}
-    </section>
-
-    <section class="cv__section">
-      <h2>Skills</h2>
-      <div class="cv__skills">
-        {me.skillGroups.map((g) => (
-          <div>
-            <strong>{g.title}</strong>
-            <span>{g.items.join(" · ")}</span>
-          </div>
-        ))}
-      </div>
-    </section>
-
-    <section class="cv__section">
-      <h2>Education</h2>
-      <div class="cv__entry">
-        <strong>B.Sc. Information Technology</strong>
-        <p class="cv__org">Hue University of Sciences, Vietnam</p>
-      </div>
+      <h2>Professional Experience</h2>
+      {projects.map((p) => {
+        const d = p.data;
+        return (
+          <article class="cv__proj">
+            <div class="cv__proj-head">
+              <strong>{d.title}</strong>
+              <span class="cv__yr">{period(d)}</span>
+            </div>
+            <p class="cv__proj-meta">
+              {d.category}
+              <span> · {d.role}</span>
+              {d.teamSize && <span> · Team of {d.teamSize}</span>}
+            </p>
+            <p class="cv__desc">{d.tagline}</p>
+            {d.responsibilities.length > 0 ? (
+              <div class="cv__resp">
+                {d.responsibilities.map((r) => (
+                  <div class="cv__resp-group">
+                    <span class="cv__resp-area">{r.area}</span>
+                    <ul>{r.items.map((it) => <li>{it}</li>)}</ul>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <ul class="cv__resp-flat">
+                {d.highlights.map((h) => <li>{h}</li>)}
+              </ul>
+            )}
+            <p class="cv__stack">{d.stack.join(" · ")}</p>
+          </article>
+        );
+      })}
     </section>
 
     <footer class="cv__foot">
@@ -109,6 +179,25 @@ const title = `${me.name} — Résumé`;
       <a href={canonical.origin + url("/")}>{canonical.host}{url("/")}</a>
     </footer>
   </main>
+
+  <script is:inline>
+    // When opened via the "Download CV" button (/resume?download), auto-open the
+    // browser's print dialog so the visitor can save this page as a PDF. The
+    // proposed filename comes from document.title, which Chrome/Safari use as the
+    // default — we swap it to a clean CV name for the duration of the print only.
+    (function () {
+      if (!new URLSearchParams(location.search).has("download")) return;
+      function go() {
+        const cvName = document.body.dataset.cvName || "CV";
+        const original = document.title;
+        document.title = cvName;
+        window.addEventListener("afterprint", () => { document.title = original; }, { once: true });
+        window.print();
+      }
+      if (document.readyState === "complete") go();
+      else window.addEventListener("load", go);
+    })();
+  </script>
 </body>
 </html>
 
@@ -120,7 +209,7 @@ const title = `${me.name} — Résumé`;
     background: #eef1f6;
     color: #1a1d29;
     font-family: "Inter", system-ui, sans-serif;
-    font-size: 14px;
+    font-size: 13.5px;
     line-height: 1.55;
   }
   a { color: #0a66c2; text-decoration: none; }
@@ -159,7 +248,7 @@ const title = `${me.name} — Résumé`;
     margin-bottom: 24px;
   }
   .cv__head h1 { margin: 0; font-size: 34px; letter-spacing: -0.5px; }
-  .cv__role { margin: 4px 0 12px; color: #00a; font-weight: 600; color: #2a3050; }
+  .cv__role { margin: 4px 0 12px; color: #2a3050; font-weight: 600; }
   .cv__bio { margin: 0; max-width: 52ch; color: #444a5e; }
   .cv__contact {
     list-style: none;
@@ -183,22 +272,55 @@ const title = `${me.name} — Résumé`;
     margin: 0 0 14px;
   }
 
-  .cv__entry { margin-bottom: 14px; break-inside: avoid; }
-  .cv__entry-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: 16px;
-  }
-  .cv__entry-head strong { font-size: 15px; }
-  .cv__yr { font: 500 12px "IBM Plex Mono", monospace; color: #6b7280; white-space: nowrap; }
-  .cv__org { margin: 1px 0 4px; font-weight: 500; color: #2a3050; }
-  .cv__desc { margin: 0; color: #444a5e; }
-  .cv__stack { margin: 4px 0 0; font: 400 12px "IBM Plex Mono", monospace; color: #6b7280; }
+  /* Personal details */
+  .cv__details { margin: 0; display: grid; gap: 6px 28px; grid-template-columns: 1fr 1fr; }
+  .cv__details > div { display: flex; gap: 10px; break-inside: avoid; }
+  .cv__details dt { margin: 0; min-width: 96px; color: #6b7280; font-weight: 500; }
+  .cv__details dd { margin: 0; color: #1a1d29; }
 
+  .cv__desc { margin: 0; color: #444a5e; }
+  .cv__summary-line { margin-bottom: 6px; }
+
+  /* Technical-skills taxonomy */
   .cv__skills { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 32px; }
+  .cv__skills--tax { margin-top: 12px; }
+  .cv__skills .cv__entry { margin-bottom: 0; }
   .cv__skills strong { display: block; font-size: 13px; }
-  .cv__skills span { color: #444a5e; font-size: 13px; }
+  .cv__skills span { color: #444a5e; font-size: 12.5px; }
+
+  .cv__soft { margin-top: 14px; break-inside: avoid; }
+  .cv__soft > strong { display: block; font-size: 13px; margin-bottom: 4px; }
+  .cv__soft ul { margin: 0; padding-left: 18px; columns: 2; column-gap: 32px; }
+  .cv__soft li { color: #444a5e; margin-bottom: 2px; }
+
+  /* Proficiency table */
+  .cv__table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .cv__table th, .cv__table td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #eef1f6; }
+  .cv__table th {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px;
+    color: #6b7280; font-weight: 600; border-bottom: 1px solid #d8deea;
+  }
+  .cv__table tr { break-inside: avoid; }
+  .cv__table td:nth-child(2) { display: flex; align-items: center; gap: 8px; }
+  .cv__bar { display: inline-flex; gap: 3px; }
+  .cv__bar span { width: 14px; height: 6px; border-radius: 2px; background: #dde3ee; }
+  .cv__bar span.on { background: #0a0e27; }
+  .cv__level { color: #6b7280; font: 500 11px "IBM Plex Mono", monospace; }
+  .cv__legend { margin: 8px 0 0; font-size: 11px; color: #6b7280; }
+
+  /* Experience */
+  .cv__proj { margin-bottom: 16px; break-inside: avoid; }
+  .cv__proj-head { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
+  .cv__proj-head strong { font-size: 15px; }
+  .cv__yr { font: 500 12px "IBM Plex Mono", monospace; color: #6b7280; white-space: nowrap; }
+  .cv__proj-meta { margin: 1px 0 5px; font-weight: 500; color: #2a3050; font-size: 12.5px; }
+  .cv__resp { margin: 6px 0 0; }
+  .cv__resp-group { margin-bottom: 5px; }
+  .cv__resp-area { font-size: 12px; font-weight: 600; color: #2a3050; }
+  .cv__resp ul, .cv__resp-flat { margin: 2px 0 0; padding-left: 18px; }
+  .cv__resp li, .cv__resp-flat li { color: #444a5e; margin-bottom: 2px; }
+  .cv__resp-flat { margin-top: 6px; }
+  .cv__stack { margin: 6px 0 0; font: 400 12px "IBM Plex Mono", monospace; color: #6b7280; }
 
   .cv__foot {
     display: flex;
@@ -211,9 +333,17 @@ const title = `${me.name} — Résumé`;
   }
 
   @media print {
-    body { background: #fff; }
+    body { background: #fff; font-size: 11.5px; }
     .print-bar { display: none; }
-    .cv { margin: 0; max-width: none; box-shadow: none; padding: 0; border-radius: 0; }
-    @page { margin: 14mm; }
+    /* Padding on .cv guarantees a visible inset even if the user picks
+       "Margins: None" in the print dialog (which zeroes out @page margins).
+       @page margin then adds consistent top/bottom margin on every page. */
+    .cv { margin: 0; max-width: none; box-shadow: none; padding: 6mm 10mm; border-radius: 0; }
+    .cv__section { margin-bottom: 16px; }
+    .cv__section h2 { break-after: avoid; }
+    .cv__proj, .cv__entry, .cv__soft, .cv__details > div { break-inside: avoid; }
+    .cv__table tr, .cv__resp-group { break-inside: avoid; }
+    a { color: #1a1d29; }
+    @page { margin: 10mm; }
   }
 </style>

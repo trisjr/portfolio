@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from "astro:content";
 import Layout from "../layouts/Layout.astro";
+import { url } from "../lib/path";
 import "../styles/pages/projects.css";
 
 const projects = (await getCollection("projects")).sort(
@@ -93,8 +94,13 @@ const cats = [
                     {p.data.stack.map((s) => <span class="chip chip--on">{s}</span>)}
                 </div>
                 <div class="modal__actions">
-                    <a class="btn btn--primary" href={p.data.links.live} target="_blank" rel="noopener">View live<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
-                    <a class="btn btn--ghost" href={p.data.links.code} target="_blank" rel="noopener">Source code</a>
+                    <a class="btn btn--primary" href={url(`/projects/${p.id}`)}>View full case study<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+                    {p.data.links.live !== "#" && (
+                        <a class="btn btn--ghost" href={p.data.links.live} target="_blank" rel="noopener">View live</a>
+                    )}
+                    {p.data.links.code !== "#" && (
+                        <a class="btn btn--ghost" href={p.data.links.code} target="_blank" rel="noopener">Source code</a>
+                    )}
                 </div>
             </div>
         </template>

@@ -6,6 +6,7 @@ year: "2024"
 startDate: "2024-05"
 endDate: "2024-08"
 role: Web Developer
+teamSize: 5
 stack: ["React", "Node.js", "Figma"]
 featured: false
 tint: "120,180,255"

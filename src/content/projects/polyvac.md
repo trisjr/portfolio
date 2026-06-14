@@ -6,7 +6,8 @@ year: "2022"
 startDate: "2022-01"
 endDate: "2024-08"
 role: Web Developer
-stack: ["Vue.js", "NestJS", "Strapi", "PostgreSQL"]
+teamSize: 8
+stack: ["JavaScript", "Vue.js", "NestJS", "Strapi", "MinIO", "PostgreSQL"]
 featured: false
 tint: "0,200,150"
 order: 11

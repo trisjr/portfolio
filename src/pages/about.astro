@@ -44,7 +44,7 @@ const timeline = (await getCollection("projects"))
                     ))}
                     <div class="hero__cta reveal" data-d="4" style="display:flex;gap:14px;margin-top:var(--lg)">
                         <a class="btn btn--primary" href={url("/contact")}>Work with me</a>
-                        <a class="btn btn--ghost" href="#" download>Download CV</a>
+                        <a class="btn btn--ghost" href={url("/resume")} target="_blank" rel="noopener">Download CV</a>
                     </div>
                 </div>
             </div>
