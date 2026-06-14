@@ -1,5 +1,6 @@
 .page-head {
-    padding: 150px 0 var(--xl);
+    padding-top: 150px;
+    padding-bottom: var(--xl);
 }
 
 .page-head h1 {

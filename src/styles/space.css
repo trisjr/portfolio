@@ -182,12 +182,14 @@ main {
 }
 
 .section {
-    padding: var(--4xl) 0;
+    padding-top: var(--4xl);
+    padding-bottom: var(--4xl);
     position: relative;
 }
 
 .section--tight {
-    padding: var(--3xl) 0;
+    padding-top: var(--3xl);
+    padding-bottom: var(--3xl);
 }
 
 .kicker {
@@ -521,10 +523,6 @@ h1, h2, h3 {
         display: flex;
         cursor: pointer;
     }
-
-    .drawer {
-        display: block;
-    }
 }
 
 /* mobile drawer */
@@ -536,6 +534,12 @@ h1, h2, h3 {
     pointer-events: none;
     opacity: 0;
     transition: opacity .3s;
+}
+
+@media (max-width: 860px) {
+    .drawer {
+        display: block;
+    }
 }
 
 .drawer.open {

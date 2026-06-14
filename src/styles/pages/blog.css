@@ -1,5 +1,6 @@
 .page-head {
-    padding: 150px 0 var(--xl);
+    padding-top: 150px;
+    padding-bottom: var(--xl);
 }
 
 .page-head h1 {
@@ -213,7 +214,17 @@
     }
 
     .news {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
         gap: var(--lg);
+        padding: var(--xl);
+    }
+
+    .news__form {
+        flex-direction: column;
+    }
+
+    .news__form input,
+    .news__form .btn {
+        width: 100%;
     }
 }

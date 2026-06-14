@@ -1,5 +1,6 @@
 .page-head {
-    padding: 150px 0 var(--xl);
+    padding-top: 150px;
+    padding-bottom: var(--xl);
 }
 
 .intro {
@@ -310,7 +311,7 @@
 
     .tl-item:nth-child(odd)::before,
     .tl-item:nth-child(even)::before {
-        left: -31px;
+        left: -37px;
         right: auto;
     }
 
