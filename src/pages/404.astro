@@ -1,0 +1,45 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { url } from "../lib/path";
+import "../styles/pages/404.css";
+
+const links = [
+    { href: url("/projects"), label: "Projects" },
+    { href: url("/blog"), label: "Blog" },
+    { href: url("/about"), label: "About" },
+    { href: url("/contact"), label: "Contact" },
+];
+---
+
+<Layout
+    title="404 — Lost in the void"
+    description="This page drifted out of orbit. Nothing to see here — let's get you back on course."
+>
+    <main>
+        <section class="wrap page-head nf" data-screen-label="404">
+            <p class="kicker reveal">// signal lost</p>
+
+            <h1 class="nf__code reveal" data-d="1" aria-label="404">
+                <span class="gradient-text">4</span><span class="nf__orbit">0</span><span class="gradient-text">4</span>
+            </h1>
+
+            <h2 class="h-glow reveal" data-d="2">You've drifted off the map.</h2>
+            <p class="lead reveal" data-d="3">
+                The coordinates you followed don't lead anywhere — the page may have been moved,
+                renamed, or never existed in this corner of the universe.
+            </p>
+
+            <div class="nf__actions reveal" data-d="4">
+                <a class="btn btn--primary" href={url("/")}>← Back to home base</a>
+                <a class="btn btn--ghost" href={url("/contact")}>Report a broken link</a>
+            </div>
+
+            <div class="nf__map reveal" data-d="5">
+                <span class="nf__map-label">Try one of these instead</span>
+                <div class="nf__links">
+                    {links.map((l) => <a href={l.href}>{l.label}</a>)}
+                </div>
+            </div>
+        </section>
+    </main>
+</Layout>

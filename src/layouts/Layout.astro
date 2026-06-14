@@ -7,13 +7,41 @@ import "../styles/space.css";
 interface Props {
   title: string;
   active?: "home" | "projects" | "blog" | "about" | "contact";
+  description?: string;
+  ogImage?: string;
+  ogType?: "website" | "article" | "profile";
 }
-
-const {title, active = "home"} = Astro.props;
-const isActive = (key: Props["active"]) => (active === key ? "active" : "");
 
 const profile = await getEntry("profile", "me");
 const p = profile!.data;
+
+const {
+  title,
+  active = "home",
+  description = p.heroBio,
+  ogImage = "/og.png",
+  ogType = "website",
+} = Astro.props;
+const isActive = (key: Props["active"]) => (active === key ? "active" : "");
+
+// Absolute URLs for SEO/social — OG requires absolute. Astro.url.pathname
+// already includes the base path, so it isn't passed through url(); a /public
+// asset like ogImage does need url() to gain the base prefix. Astro.site is
+// the bare origin.
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const ogImageUrl = new URL(url(ogImage), Astro.site);
+
+// JSON-LD Person schema — site-wide identity for rich results.
+const personLd = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: p.name,
+  url: new URL(url("/"), Astro.site).href,
+  image: new URL(url(p.avatar), Astro.site).href,
+  jobTitle: p.role,
+  description: p.heroBio,
+  sameAs: p.socials.map((s: { url: string }) => s.url),
+};
 ---
 
 <!doctype html>
@@ -24,6 +52,31 @@ const p = profile!.data;
     <link rel="icon" type="image/svg+xml" href={url("/favicon.svg")}/>
     <link rel="alternate icon" type="image/x-icon" href={url("/favicon.ico")}/>
     <title>{title}</title>
+    <meta name="description" content={description}/>
+    <meta name="author" content={p.name}/>
+    <link rel="canonical" href={canonical}/>
+
+    <!-- Open Graph -->
+    <meta property="og:type" content={ogType}/>
+    <meta property="og:title" content={title}/>
+    <meta property="og:description" content={description}/>
+    <meta property="og:url" content={canonical}/>
+    <meta property="og:image" content={ogImageUrl}/>
+    <meta property="og:image:width" content="1200"/>
+    <meta property="og:image:height" content="630"/>
+    <meta property="og:site_name" content={p.name}/>
+    <meta property="og:locale" content="en_US"/>
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image"/>
+    <meta name="twitter:title" content={title}/>
+    <meta name="twitter:description" content={description}/>
+    <meta name="twitter:image" content={ogImageUrl}/>
+    <meta name="twitter:creator" content="@trisjr"/>
+
+    <link rel="alternate" type="application/rss+xml" title={`${p.name} — Blog`} href={url("/rss.xml")}/>
+    <script type="application/ld+json" set:html={JSON.stringify(personLd)}/>
+
     <link rel="preconnect" href="https://fonts.googleapis.com"/>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
     <link
@@ -80,10 +133,10 @@ const p = profile!.data;
             </div>
             <div><h4>Navigate</h4>
                 <div class="footer__links"><a href={url("/")}>Home</a><a href={url("/projects")}>Projects</a><a
-                        href={url("/blog")}>Blog</a><a href={url("/about")}>About</a><a href={url("/contact")}>Contact</a></div>
+                        href={url("/blog")}>Blog</a><a href={url("/about")}>About</a><a href={url("/contact")}>Contact</a><a href={url("/resume")}>Résumé</a></div>
             </div>
             <div><h4>Elsewhere</h4>
-                <div class="footer__links">{p.elsewhere.map((e: { url: string | URL | null | undefined; name: unknown; }) => <a href={e.url}>{e.name}</a>)}</div>
+                <div class="footer__links">{p.elsewhere.map((e: { url: string | URL | null | undefined; name: unknown; }) => <a href={e.url}>{e.name}</a>)}<a href={url("/rss.xml")}>RSS</a></div>
             </div>
         </div>
         <div class="footer__bottom">

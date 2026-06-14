@@ -1,0 +1,119 @@
+.page-head {
+    padding-top: 150px;
+    padding-bottom: var(--xl);
+}
+
+.nf {
+    text-align: center;
+    max-width: 60ch;
+    margin-inline: auto;
+}
+
+.nf__code {
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: clamp(110px, 26vw, 260px);
+    line-height: 1;
+    letter-spacing: -0.04em;
+    margin: var(--sm) 0 var(--md);
+}
+
+/* the middle "0" reads as a little orbiting planet */
+.nf__orbit {
+    position: relative;
+    display: inline-block;
+    color: var(--text);
+    text-shadow: 0 0 40px rgba(var(--accent-rgb), .5);
+}
+
+.nf__orbit::after {
+    content: "";
+    position: absolute;
+    inset: -8% -14%;
+    border: 1px solid rgba(var(--accent-rgb), .35);
+    border-radius: 50%;
+    transform: rotate(-18deg);
+    animation: nf-spin 9s linear infinite;
+}
+
+@keyframes nf-spin {
+    to {
+        transform: rotate(342deg);
+    }
+}
+
+.nf h2 {
+    font-size: clamp(26px, 4vw, 40px);
+    margin-bottom: var(--md);
+}
+
+.nf .lead {
+    color: var(--dim);
+    font-size: 18px;
+    line-height: 1.8;
+    margin: 0 auto var(--xl);
+    max-width: 48ch;
+}
+
+.nf__actions {
+    display: flex;
+    gap: var(--md);
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: var(--2xl);
+}
+
+.nf__map {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: var(--lg) var(--xl);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, .02);
+}
+
+.nf__map-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--faint);
+}
+
+.nf__links {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.nf__links a {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--dim);
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    transition: all .25s var(--ease);
+}
+
+.nf__links a:hover {
+    color: var(--accent);
+    border-color: rgba(var(--accent-rgb), .5);
+    background: rgba(var(--accent-rgb), .06);
+    transform: translateY(-2px);
+}
+
+@media (max-width: 560px) {
+    .nf__actions {
+        flex-direction: column;
+    }
+
+    .nf__actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}

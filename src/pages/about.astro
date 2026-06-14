@@ -28,7 +28,7 @@ const timeline = (await getCollection("projects"))
     }));
 ---
 
-<Layout title="About — TrisJr" active="about">
+<Layout title="About — TrisJr" active="about" description={me.aboutPreviewBio} ogType="profile">
     <main>
         <section class="wrap page-head" data-screen-label="About intro">
             <div class="intro">

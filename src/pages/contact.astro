@@ -2,12 +2,13 @@
 import { getEntry } from "astro:content";
 import Layout from "../layouts/Layout.astro";
 import Icon from "../components/Icon.astro";
+import { url } from "../lib/path";
 import "../styles/pages/contact.css";
 
 const me = (await getEntry("profile", "me"))!.data;
 ---
 
-<Layout title="Contact — TrisJr" active="contact">
+<Layout title="Contact — TrisJr" active="contact" description="Get in touch with TrisJr — open to work, responds within 24h (UTC+7).">
     <main>
         <section class="wrap page-head" data-screen-label="Contact">
             <div class="contact">
@@ -29,6 +30,10 @@ const me = (await getEntry("profile", "me"))!.data;
 
                     <div class="status-card reveal" data-d="4"><span class="dot"></span> {me.contact.status}
                     </div>
+
+                    <a class="btn btn--ghost reveal" data-d="5" href={url("/resume")} style="margin-top:var(--md)">
+                        View résumé →
+                    </a>
                 </div>
 
                 <div class="card form reveal" data-d="2">

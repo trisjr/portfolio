@@ -35,7 +35,7 @@ const xHandle = (me.socials.find((s) => s.name === "X")?.url ?? "")
     .pop();
 ---
 
-<Layout title={`${a.title} — ${me.name}`} active="blog">
+<Layout title={`${a.title} — ${me.name}`} active="blog" description={a.excerpt} ogType="article">
     <div id="progress"></div>
     <main id="main" data-screen-label="Blog detail">
         <article class="wrap article-head">

@@ -1,0 +1,219 @@
+---
+import { getCollection, getEntry } from "astro:content";
+import { url } from "../lib/path";
+
+const me = (await getEntry("profile", "me"))!.data;
+
+// Top projects as "selected work" — featured first, then by order.
+const projects = (await getCollection("projects"))
+  .sort((a, b) => a.data.order - b.data.order)
+  .sort((a, b) => Number(b.data.featured) - Number(a.data.featured))
+  .slice(0, 5);
+
+const ogImageUrl = new URL(url("/og.png"), Astro.site);
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const title = `${me.name} — Résumé`;
+---
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href={url("/favicon.svg")} />
+  <title>{title}</title>
+  <meta name="description" content={me.aboutPreviewBio} />
+  <link rel="canonical" href={canonical} />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={me.aboutPreviewBio} />
+  <meta property="og:image" content={ogImageUrl} />
+  <meta property="og:url" content={canonical} />
+  <meta name="robots" content="index, follow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    rel="stylesheet"
+  />
+</head>
+<body>
+  <button class="print-bar" onclick="window.print()" aria-label="Print or save as PDF">
+    ⌘P · Save as PDF
+  </button>
+
+  <main class="cv">
+    <header class="cv__head">
+      <div>
+        <h1>{me.name}</h1>
+        <p class="cv__role">{me.titles.join(" · ")}</p>
+        <p class="cv__bio">{me.aboutPreviewBio}</p>
+      </div>
+      <ul class="cv__contact">
+        {me.contact.channels.map((c) => (
+          <li><a href={c.url}>{c.value}</a></li>
+        ))}
+        <li>{me.contact.status}</li>
+      </ul>
+    </header>
+
+    <section class="cv__section">
+      <h2>Experience</h2>
+      {me.jobs.map((j) => (
+        <div class="cv__entry">
+          <div class="cv__entry-head">
+            <strong>{j.role}</strong>
+            <span class="cv__yr">{j.yr}</span>
+          </div>
+          <p class="cv__org">{j.org}</p>
+          <p class="cv__desc">{j.desc}</p>
+        </div>
+      ))}
+    </section>
+
+    <section class="cv__section">
+      <h2>Selected Work</h2>
+      {projects.map((p) => (
+        <div class="cv__entry">
+          <div class="cv__entry-head">
+            <strong>{p.data.title}</strong>
+            <span class="cv__yr">{p.data.category} · {p.data.year}</span>
+          </div>
+          <p class="cv__desc">{p.data.tagline}</p>
+          <p class="cv__stack">{p.data.stack.join(" · ")}</p>
+        </div>
+      ))}
+    </section>
+
+    <section class="cv__section">
+      <h2>Skills</h2>
+      <div class="cv__skills">
+        {me.skillGroups.map((g) => (
+          <div>
+            <strong>{g.title}</strong>
+            <span>{g.items.join(" · ")}</span>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <section class="cv__section">
+      <h2>Education</h2>
+      <div class="cv__entry">
+        <strong>B.Sc. Information Technology</strong>
+        <p class="cv__org">Hue University of Sciences, Vietnam</p>
+      </div>
+    </section>
+
+    <footer class="cv__foot">
+      <span>{me.name}</span>
+      <a href={canonical.origin + url("/")}>{canonical.host}{url("/")}</a>
+    </footer>
+  </main>
+</body>
+</html>
+
+<style is:global>
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body {
+    margin: 0;
+    background: #eef1f6;
+    color: #1a1d29;
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.55;
+  }
+  a { color: #0a66c2; text-decoration: none; }
+
+  .print-bar {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10;
+    padding: 10px 16px;
+    border: 0;
+    border-radius: 8px;
+    background: #0a0e27;
+    color: #fff;
+    font: 500 13px "IBM Plex Mono", monospace;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(10, 14, 39, 0.25);
+  }
+  .print-bar:hover { background: #1a2150; }
+
+  .cv {
+    max-width: 820px;
+    margin: 32px auto;
+    padding: 48px 56px;
+    background: #fff;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    border-radius: 4px;
+  }
+
+  .cv__head {
+    display: flex;
+    justify-content: space-between;
+    gap: 32px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #0a0e27;
+    margin-bottom: 24px;
+  }
+  .cv__head h1 { margin: 0; font-size: 34px; letter-spacing: -0.5px; }
+  .cv__role { margin: 4px 0 12px; color: #00a; font-weight: 600; color: #2a3050; }
+  .cv__bio { margin: 0; max-width: 52ch; color: #444a5e; }
+  .cv__contact {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    text-align: right;
+    font-size: 12.5px;
+    color: #444a5e;
+    white-space: nowrap;
+  }
+  .cv__contact li { margin-bottom: 4px; }
+
+  .cv__section { margin-bottom: 22px; }
+  .cv__section h2 {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #6b7280;
+    border-bottom: 1px solid #e2e6ee;
+    padding-bottom: 6px;
+    margin: 0 0 14px;
+  }
+
+  .cv__entry { margin-bottom: 14px; break-inside: avoid; }
+  .cv__entry-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+  }
+  .cv__entry-head strong { font-size: 15px; }
+  .cv__yr { font: 500 12px "IBM Plex Mono", monospace; color: #6b7280; white-space: nowrap; }
+  .cv__org { margin: 1px 0 4px; font-weight: 500; color: #2a3050; }
+  .cv__desc { margin: 0; color: #444a5e; }
+  .cv__stack { margin: 4px 0 0; font: 400 12px "IBM Plex Mono", monospace; color: #6b7280; }
+
+  .cv__skills { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 32px; }
+  .cv__skills strong { display: block; font-size: 13px; }
+  .cv__skills span { color: #444a5e; font-size: 13px; }
+
+  .cv__foot {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 28px;
+    padding-top: 14px;
+    border-top: 1px solid #e2e6ee;
+    font-size: 12px;
+    color: #6b7280;
+  }
+
+  @media print {
+    body { background: #fff; }
+    .print-bar { display: none; }
+    .cv { margin: 0; max-width: none; box-shadow: none; padding: 0; border-radius: 0; }
+    @page { margin: 14mm; }
+  }
+</style>
