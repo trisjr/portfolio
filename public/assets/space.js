@@ -47,7 +47,12 @@
 
     function size() {
       dpr = Math.min(window.devicePixelRatio || 1, 2);
-      w = canvas.clientWidth; h = canvas.clientHeight;
+      // The canvas is pinned to the viewport (fixed, inset:0, width/height 100%),
+      // so size it from the viewport directly. Reading clientWidth here is racy:
+      // when init() runs synchronously on a hard reload, CSS hasn't laid the
+      // canvas out yet and clientWidth reports the intrinsic 300×150 — shrinking
+      // the bitmap so it looks zoomed once stretched. innerWidth never lies.
+      w = window.innerWidth; h = window.innerHeight;
       canvas.width = w * dpr; canvas.height = h * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
