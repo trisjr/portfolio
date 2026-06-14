@@ -1,0 +1,353 @@
+---
+// Interactive top-down solar-system orrery. Pure Canvas 2D + vanilla JS.
+// The driving script inits on `astro:page-load` and tears down on
+// `astro:before-swap` so it survives client-side View Transitions.
+---
+
+<div class="orrery" data-orrery>
+    <canvas class="orrery__canvas" data-orrery-canvas></canvas>
+
+    <div class="orrery__tooltip" data-orrery-tip hidden>
+        <span class="orrery__tip-name" data-tip-name></span>
+        <span class="orrery__tip-type" data-tip-type></span>
+        <span class="orrery__tip-fact" data-tip-fact></span>
+    </div>
+
+    <div class="orrery__hud">
+        <button class="orrery__btn" data-orrery-play aria-label="Pause">
+            <svg class="ic-pause" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+            <svg class="ic-play" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5.5v13a1 1 0 0 0 1.5.87l11-6.5a1 1 0 0 0 0-1.74l-11-6.5A1 1 0 0 0 7 5.5z"/></svg>
+        </button>
+        <button class="orrery__btn" data-orrery-reset aria-label="Reset view">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+        </button>
+    </div>
+
+    <div class="orrery__panel">
+        <label class="orrery__speed">
+            <span>Time</span>
+            <input type="range" min="0" max="100" value="22" data-orrery-speed aria-label="Time speed">
+            <b data-orrery-speed-label>1×</b>
+        </label>
+        <div class="orrery__toggles">
+            <button class="orrery__chip on" data-orrery-orbits>Orbits</button>
+            <button class="orrery__chip on" data-orrery-labels>Labels</button>
+        </div>
+    </div>
+
+    <span class="orrery__hint">Drag to pan · scroll to zoom</span>
+</div>
+
+<script>
+    document.addEventListener("astro:page-load", () => {
+        const root = document.querySelector("[data-orrery]");
+        if (!root) return;
+        const canvas = root.querySelector("[data-orrery-canvas]");
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+
+        const tip = root.querySelector("[data-orrery-tip]");
+        const tipName = root.querySelector("[data-tip-name]");
+        const tipType = root.querySelector("[data-tip-type]");
+        const tipFact = root.querySelector("[data-tip-fact]");
+        const playBtn = root.querySelector("[data-orrery-play]");
+        const resetBtn = root.querySelector("[data-orrery-reset]");
+        const speedInput = root.querySelector("[data-orrery-speed]");
+        const speedLabel = root.querySelector("[data-orrery-speed-label]");
+        const orbitsBtn = root.querySelector("[data-orrery-orbits]");
+        const labelsBtn = root.querySelector("[data-orrery-labels]");
+
+        // Sun + 8 planets. `dist`/`r` are layout fractions, not to scale.
+        // `period` is the real orbital period in Earth years — motion is honest.
+        const sun = { color: "#ffcf6b", glow: "#ff9d2e", r: 0.052 };
+        const planets = [
+            { name: "Mercury", type: "Terrestrial planet", color: "#b9b0a6", dist: 0.11, r: 0.009, period: 0.24, fact: "Orbits the Sun in just 88 days." },
+            { name: "Venus", type: "Terrestrial planet", color: "#e6c178", dist: 0.17, r: 0.016, period: 0.62, fact: "A day on Venus is longer than its year." },
+            { name: "Earth", type: "Home", color: "#4aa3e0", dist: 0.24, r: 0.017, period: 1.0, fact: "The only world known to host life.", moon: true },
+            { name: "Mars", type: "Terrestrial planet", color: "#d56a44", dist: 0.31, r: 0.013, period: 1.88, fact: "Home to Olympus Mons, the tallest volcano." },
+            { name: "Jupiter", type: "Gas giant", color: "#d8a878", dist: 0.47, r: 0.038, period: 11.86, fact: "Could swallow 1,300 Earths." },
+            { name: "Saturn", type: "Gas giant", color: "#e0c99a", dist: 0.62, r: 0.033, period: 29.45, fact: "Its rings are mostly ice.", ring: true },
+            { name: "Uranus", type: "Ice giant", color: "#9adfe6", dist: 0.75, r: 0.024, period: 84.0, fact: "Spins on its side, rolling around the Sun." },
+            { name: "Neptune", type: "Ice giant", color: "#5a78d8", dist: 0.88, r: 0.023, period: 164.8, fact: "Winds here top 2,000 km/h." },
+        ];
+        planets.forEach((p) => { p.theta = Math.random() * Math.PI * 2; });
+
+        let stars = [];
+        let W = 0, H = 0, dpr = 1, maxR = 1;
+        let scale = 1, panX = 0, panY = 0;
+        let dragging = false, moved = false, lastX = 0, lastY = 0;
+        let hoverX = -1, hoverY = -1;
+        let playing = true;
+        // Slider 0..100 -> exponential time multiplier (0× .. ~120×).
+        let timeMul = sliderToMul(+speedInput.value);
+
+        function sliderToMul(v) {
+            if (v <= 0) return 0;
+            return +(Math.pow(v / 100, 2.2) * 120).toFixed(v < 30 ? 2 : 1);
+        }
+
+        function resize() {
+            const rect = canvas.getBoundingClientRect();
+            dpr = Math.min(window.devicePixelRatio || 1, 2);
+            W = rect.width; H = rect.height;
+            canvas.width = Math.round(W * dpr);
+            canvas.height = Math.round(H * dpr);
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            maxR = Math.min(W, H) / 2 * 0.92;
+            stars = makeStars();
+        }
+
+        function makeStars() {
+            const n = Math.round((W * H) / 6000);
+            const out = [];
+            for (let i = 0; i < n; i++) {
+                out.push({
+                    x: Math.random() * W,
+                    y: Math.random() * H,
+                    r: Math.random() * 1.1 + 0.2,
+                    a: Math.random() * 0.5 + 0.15,
+                });
+            }
+            return out;
+        }
+
+        const cx = () => W / 2 + panX;
+        const cy = () => H / 2 + panY;
+
+        function planetPos(p) {
+            const d = p.dist * maxR * scale;
+            return { x: cx() + d * Math.cos(p.theta), y: cy() + d * Math.sin(p.theta) };
+        }
+
+        let raf = 0, last = 0, hovered = null;
+
+        function frame(t) {
+            const dt = last ? Math.min((t - last) / 1000, 0.05) : 0;
+            last = t;
+            if (playing) {
+                for (const p of planets) {
+                    // Earth = 1 full turn per "year"; speed scaled by 1/period.
+                    p.theta += (dt * timeMul * 0.5) / p.period;
+                }
+            }
+            draw();
+            raf = requestAnimationFrame(frame);
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, W, H);
+
+            // backdrop
+            const bg = ctx.createRadialGradient(cx(), cy(), 0, cx(), cy(), Math.max(W, H));
+            bg.addColorStop(0, "rgba(20,16,30,0.55)");
+            bg.addColorStop(1, "rgba(6,7,15,0.0)");
+            ctx.fillStyle = bg;
+            ctx.fillRect(0, 0, W, H);
+
+            for (const s of stars) {
+                ctx.globalAlpha = s.a;
+                ctx.fillStyle = "#cdd6ff";
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+
+            // orbit rings
+            if (showOrbits) {
+                ctx.lineWidth = 1;
+                for (const p of planets) {
+                    ctx.strokeStyle = "rgba(255,255,255,0.07)";
+                    ctx.beginPath();
+                    ctx.arc(cx(), cy(), p.dist * maxR * scale, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+            }
+
+            // detect hover (in screen space, before drawing planets)
+            hovered = null;
+            if (hoverX >= 0) {
+                let best = 16;
+                for (const p of planets) {
+                    const pos = planetPos(p);
+                    const dd = Math.hypot(pos.x - hoverX, pos.y - hoverY);
+                    const hit = Math.max(p.r * maxR * scale, 6) + 7;
+                    if (dd < hit && dd < best) { best = dd; hovered = p; }
+                }
+            }
+
+            // sun
+            const sr = sun.r * maxR * scale;
+            const halo = ctx.createRadialGradient(cx(), cy(), sr * 0.3, cx(), cy(), sr * 4);
+            halo.addColorStop(0, "rgba(255,180,80,0.55)");
+            halo.addColorStop(1, "rgba(255,140,40,0)");
+            ctx.fillStyle = halo;
+            ctx.beginPath();
+            ctx.arc(cx(), cy(), sr * 4, 0, Math.PI * 2);
+            ctx.fill();
+            const sunGrad = ctx.createRadialGradient(cx() - sr * 0.3, cy() - sr * 0.3, sr * 0.1, cx(), cy(), sr);
+            sunGrad.addColorStop(0, "#fff3cf");
+            sunGrad.addColorStop(0.5, sun.color);
+            sunGrad.addColorStop(1, sun.glow);
+            ctx.fillStyle = sunGrad;
+            ctx.beginPath();
+            ctx.arc(cx(), cy(), sr, 0, Math.PI * 2);
+            ctx.fill();
+
+            // planets
+            for (const p of planets) {
+                const pos = planetPos(p);
+                const r = Math.max(p.r * maxR * scale, 1.6);
+
+                if (p.ring) {
+                    ctx.save();
+                    ctx.translate(pos.x, pos.y);
+                    ctx.rotate(-0.5);
+                    ctx.scale(1, 0.42);
+                    ctx.strokeStyle = "rgba(224,201,154,0.55)";
+                    ctx.lineWidth = Math.max(r * 0.45, 1.5);
+                    ctx.beginPath();
+                    ctx.arc(0, 0, r * 1.9, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.restore();
+                }
+
+                const g = ctx.createRadialGradient(pos.x - r * 0.35, pos.y - r * 0.35, r * 0.1, pos.x, pos.y, r);
+                g.addColorStop(0, p.color);
+                g.addColorStop(1, shade(p.color, -0.45));
+                ctx.fillStyle = g;
+                ctx.beginPath();
+                ctx.arc(pos.x, pos.y, r, 0, Math.PI * 2);
+                ctx.fill();
+
+                if (p.moon) {
+                    const mx = pos.x + Math.cos(p.theta * 8) * r * 2.4;
+                    const my = pos.y + Math.sin(p.theta * 8) * r * 2.4;
+                    ctx.fillStyle = "#cfd3da";
+                    ctx.beginPath();
+                    ctx.arc(mx, my, Math.max(r * 0.32, 1), 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                const isHot = hovered === p;
+                if (showLabels || isHot) {
+                    ctx.font = "11px 'IBM Plex Mono', monospace";
+                    ctx.fillStyle = isHot ? "#fff" : "rgba(220,225,245,0.55)";
+                    ctx.textAlign = "center";
+                    ctx.fillText(p.name, pos.x, pos.y - r - 7);
+                }
+                if (isHot) {
+                    ctx.strokeStyle = "rgba(255,255,255,0.8)";
+                    ctx.lineWidth = 1.2;
+                    ctx.beginPath();
+                    ctx.arc(pos.x, pos.y, r + 5, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+            }
+
+            updateTooltip();
+        }
+
+        function updateTooltip() {
+            if (hovered) {
+                const pos = planetPos(hovered);
+                tipName.textContent = hovered.name;
+                tipType.textContent = hovered.type + " · " + fmtPeriod(hovered.period);
+                tipFact.textContent = hovered.fact;
+                tip.hidden = false;
+                const tw = tip.offsetWidth, th = tip.offsetHeight;
+                let tx = pos.x + 16, ty = pos.y - th - 12;
+                if (tx + tw > W - 8) tx = pos.x - tw - 16;
+                if (ty < 8) ty = pos.y + 16;
+                tip.style.transform = `translate(${tx}px, ${ty}px)`;
+                canvas.style.cursor = "pointer";
+            } else {
+                tip.hidden = true;
+                canvas.style.cursor = dragging ? "grabbing" : "grab";
+            }
+        }
+
+        function fmtPeriod(yr) {
+            if (yr < 1) return Math.round(yr * 365) + " day year";
+            return (yr < 10 ? yr.toFixed(2) : Math.round(yr)) + " year orbit";
+        }
+
+        function shade(hex, amt) {
+            const n = parseInt(hex.slice(1), 16);
+            let r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+            r = Math.max(0, Math.min(255, Math.round(r + r * amt)));
+            g = Math.max(0, Math.min(255, Math.round(g + g * amt)));
+            b = Math.max(0, Math.min(255, Math.round(b + b * amt)));
+            return `rgb(${r},${g},${b})`;
+        }
+
+        let showOrbits = true, showLabels = true;
+
+        // ---- interaction ----
+        const ac = new AbortController();
+        const on = (el, ev, fn, opts) => el.addEventListener(ev, fn, { signal: ac.signal, ...(opts || {}) });
+
+        function localPt(e) {
+            const r = canvas.getBoundingClientRect();
+            return { x: e.clientX - r.left, y: e.clientY - r.top };
+        }
+
+        on(canvas, "pointerdown", (e) => {
+            dragging = true; moved = false;
+            const pt = localPt(e); lastX = pt.x; lastY = pt.y;
+            canvas.setPointerCapture(e.pointerId);
+        });
+        on(canvas, "pointermove", (e) => {
+            const pt = localPt(e);
+            hoverX = pt.x; hoverY = pt.y;
+            if (dragging) {
+                panX += pt.x - lastX; panY += pt.y - lastY;
+                lastX = pt.x; lastY = pt.y; moved = true;
+            }
+        });
+        const endDrag = () => { dragging = false; };
+        on(canvas, "pointerup", endDrag);
+        on(canvas, "pointercancel", endDrag);
+        on(canvas, "pointerleave", () => { hoverX = -1; hoverY = -1; dragging = false; });
+
+        on(canvas, "wheel", (e) => {
+            e.preventDefault();
+            const pt = localPt(e);
+            const factor = e.deltaY < 0 ? 1.12 : 1 / 1.12;
+            const ns = Math.max(0.45, Math.min(6, scale * factor));
+            const k = ns / scale;
+            // zoom toward cursor
+            panX = pt.x - (pt.x - cx()) * k - W / 2;
+            panY = pt.y - (pt.y - cy()) * k - H / 2;
+            scale = ns;
+        }, { passive: false });
+
+        on(playBtn, "click", () => {
+            playing = !playing;
+            playBtn.classList.toggle("is-paused", !playing);
+            playBtn.setAttribute("aria-label", playing ? "Pause" : "Play");
+        });
+        on(resetBtn, "click", () => { scale = 1; panX = 0; panY = 0; });
+        on(speedInput, "input", () => {
+            timeMul = sliderToMul(+speedInput.value);
+            speedLabel.textContent = (timeMul === 0 ? "0" : timeMul >= 10 ? Math.round(timeMul) : timeMul) + "×";
+        });
+        on(orbitsBtn, "click", () => { showOrbits = !showOrbits; orbitsBtn.classList.toggle("on", showOrbits); });
+        on(labelsBtn, "click", () => { showLabels = !showLabels; labelsBtn.classList.toggle("on", showLabels); });
+
+        const ro = new ResizeObserver(resize);
+        ro.observe(canvas);
+        on(window, "resize", resize);
+
+        resize();
+        speedLabel.textContent = (timeMul >= 10 ? Math.round(timeMul) : timeMul) + "×";
+        raf = requestAnimationFrame(frame);
+
+        // teardown on client-side navigation
+        document.addEventListener("astro:before-swap", () => {
+            cancelAnimationFrame(raf);
+            ro.disconnect();
+            ac.abort();
+        }, { once: true });
+    });
+</script>

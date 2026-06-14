@@ -1,0 +1,78 @@
+---
+import { getCollection, getEntry, render } from "astro:content";
+import Layout from "../../layouts/Layout.astro";
+import SolarSystem from "../../components/lab/SolarSystem.astro";
+import { url } from "../../lib/path";
+import "../../styles/pages/lab-detail.css";
+
+const me = (await getEntry("profile", "me"))!.data;
+
+export async function getStaticPaths() {
+    const items = (await getCollection("lab")).sort(
+        (a, b) => a.data.order - b.data.order,
+    );
+    return items.map((entry, i) => ({
+        params: { slug: entry.id },
+        props: {
+            entry,
+            prev: items[i - 1] ?? null,
+            next: items[i + 1] ?? null,
+        },
+    }));
+}
+
+const { entry, prev, next } = Astro.props;
+const { Content } = await render(entry);
+const e = entry.data;
+---
+
+<Layout title={`${e.title} — ${me.name}`} active="lab" description={e.excerpt}>
+    <main id="main" data-screen-label="Lab detail">
+        <section class="wrap lab-detail__head">
+            <a class="crumb" href={url("/lab")}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
+                All experiments
+            </a>
+            <div class="reveal">
+                <span class="lab-detail__cat" style={`color:rgb(${e.tint})`}>{e.cat}</span>
+                <h1 class="h-glow">{e.title}</h1>
+                <p class="lab-detail__tagline">{e.tagline}</p>
+                <div class="chips" style="margin-top:var(--lg)">
+                    {e.stack.map((s) => <span class="chip">{s}</span>)}
+                </div>
+            </div>
+        </section>
+
+        <section class="wrap lab-detail__stage reveal" style={`--tint:${e.tint}`}>
+            {e.demo === "solar-system" && <SolarSystem />}
+        </section>
+
+        <section class="wrap">
+            <div class="prose reveal">
+                <Content />
+            </div>
+
+            <nav class="lab-pager">
+                {prev ? (
+                    <a class="prev" href={url(`/lab/${prev.id}`)}><span class="dir">← Previous</span><span class="ttl">{prev.data.title}</span></a>
+                ) : (
+                    <span class="empty"></span>
+                )}
+                {next ? (
+                    <a class="next" href={url(`/lab/${next.id}`)}><span class="dir">Next →</span><span class="ttl">{next.data.title}</span></a>
+                ) : (
+                    <span class="empty"></span>
+                )}
+            </nav>
+        </section>
+    </main>
+
+    <script slot="scripts">
+      document.addEventListener("astro:page-load", () => {
+        const main = document.getElementById("main");
+        if (!main) return;
+        if (window.__revealInView) window.__revealInView(main);
+        else main.querySelectorAll(".reveal").forEach(el => el.classList.add("in"));
+      });
+    </script>
+</Layout>

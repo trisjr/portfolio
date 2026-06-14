@@ -45,6 +45,25 @@ const blog = defineCollection({
   }),
 });
 
+const lab = defineCollection({
+  loader: glob({ pattern: "**/*.md", base: "./src/content/lab" }),
+  schema: z.object({
+    title: z.string(),
+    tagline: z.string(),
+    cat: z.string(),
+    // Maturity of the experiment, shown as a status pill on the cards.
+    status: z.enum(["live", "wip", "concept"]).default("live"),
+    pubDate: z.date(),
+    tint: z.string(),
+    order: z.number(),
+    stack: z.array(z.string()),
+    // Key that maps to an interactive demo component in `lab/[slug].astro`.
+    // Leave empty for a writeup-only entry.
+    demo: z.string().default(""),
+    excerpt: z.string(),
+  }),
+});
+
 const profile = defineCollection({
   loader: glob({ pattern: "**/*.md", base: "./src/content/profile" }),
   schema: z.object({
@@ -148,4 +167,4 @@ const profile = defineCollection({
   }),
 });
 
-export const collections = { projects, blog, profile };
+export const collections = { projects, blog, lab, profile };
