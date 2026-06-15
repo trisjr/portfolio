@@ -1,0 +1,410 @@
+---
+// N-body gravity sandbox. Pure Canvas 2D + vanilla JS.
+// Every body attracts every other (naive O(n²) with softening); bodies that
+// touch merge and conserve momentum, so matter accretes into stars over time.
+// Drag to slingshot a new body, scroll to zoom. Inits on `astro:page-load`
+// and tears down on `astro:before-swap` to survive View Transitions.
+---
+
+<div class="gsand" data-gsand>
+    <canvas class="gsand__canvas" data-gsand-canvas></canvas>
+
+    <div class="gsand__hud">
+        <button class="gsand__btn" data-gsand-play aria-label="Pause">
+            <svg class="ic-pause" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+            <svg class="ic-play" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5.5v13a1 1 0 0 0 1.5.87l11-6.5a1 1 0 0 0 0-1.74l-11-6.5A1 1 0 0 0 7 5.5z"/></svg>
+        </button>
+        <button class="gsand__btn" data-gsand-reset aria-label="Reset simulation">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+        </button>
+    </div>
+
+    <div class="gsand__panel">
+        <label class="gsand__slider">
+            <span>Time</span>
+            <input type="range" min="0" max="100" value="56" data-gsand-speed aria-label="Simulation speed">
+            <b data-gsand-speed-label>1×</b>
+        </label>
+        <label class="gsand__slider">
+            <span>Mass</span>
+            <input type="range" min="0" max="100" value="30" data-gsand-mass aria-label="Spawn mass">
+            <b data-gsand-mass-label>planet</b>
+        </label>
+        <div class="gsand__toggles">
+            <button class="gsand__chip on" data-gsand-trails>Trails</button>
+            <button class="gsand__chip on" data-gsand-glow>Glow</button>
+        </div>
+    </div>
+
+    <span class="gsand__hint">Drag to fling a body · scroll to zoom</span>
+    <span class="gsand__count" data-gsand-count></span>
+</div>
+
+<script>
+    document.addEventListener("astro:page-load", () => {
+        const root = document.querySelector("[data-gsand]");
+        if (!root) return;
+        const canvas = root.querySelector("[data-gsand-canvas]");
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+
+        const playBtn = root.querySelector("[data-gsand-play]");
+        const resetBtn = root.querySelector("[data-gsand-reset]");
+        const speedInput = root.querySelector("[data-gsand-speed]");
+        const speedLabel = root.querySelector("[data-gsand-speed-label]");
+        const massInput = root.querySelector("[data-gsand-mass]");
+        const massLabel = root.querySelector("[data-gsand-mass-label]");
+        const trailsBtn = root.querySelector("[data-gsand-trails]");
+        const glowBtn = root.querySelector("[data-gsand-glow]");
+        const countEl = root.querySelector("[data-gsand-count]");
+
+        // --- constants (tuned for px-scale world units) ---
+        const G = 1.6e6;           // gravitational constant
+        const EPS2 = 14 * 14;      // softening² — tames close-encounter blowups
+        const STAR_MASS = 0.2;     // mass above which a body glows like a star
+        const MAX_BODIES = 170;    // perf + memory ceiling
+        const TRAIL_LEN = 26;
+        const SUBSTEPS = 2;        // integration substeps per frame
+        const COOL = ["#6fb4ff", "#8ad7d2", "#a78bff", "#5ad1a8", "#7c9cff", "#b98bff"];
+
+        // --- view transform: screen = world * scale + off ---
+        let W = 0, H = 0, dpr = 1;
+        let scale = 1, offX = 0, offY = 0;
+        let stars = [];
+        let bodies = [];
+        let playing = true;
+        let showTrails = true, showGlow = true;
+        let timeMul = sliderToMul(+speedInput.value);
+        let spawnMass = sliderToMass(+massInput.value);
+
+        // slingshot drag state (world coords)
+        let aiming = false, aimX = 0, aimY = 0, curX = 0, curY = 0, aimId = -1;
+
+        const radiusOf = (m) => 3 + 17 * Math.cbrt(m);
+
+        function sliderToMul(v) {
+            if (v <= 0) return 0;
+            return +(Math.pow(v / 100, 1.8) * 3).toFixed(2);
+        }
+        function sliderToMass(v) {
+            // exponential 0.0008 .. 0.6 so the slider can reach star territory
+            return 0.0008 * Math.pow(750, v / 100);
+        }
+        function massWord(m) {
+            if (m < 0.02) return "moon";
+            if (m < 0.1) return "planet";
+            if (m < STAR_MASS) return "giant";
+            return "star";
+        }
+
+        const w2sx = (x) => x * scale + offX;
+        const w2sy = (y) => y * scale + offY;
+        const s2wx = (x) => (x - offX) / scale;
+        const s2wy = (y) => (y - offY) / scale;
+
+        function resize() {
+            const rect = canvas.getBoundingClientRect();
+            dpr = Math.min(window.devicePixelRatio || 1, 2);
+            W = rect.width; H = rect.height;
+            canvas.width = Math.round(W * dpr);
+            canvas.height = Math.round(H * dpr);
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            stars = makeStars();
+        }
+
+        function makeStars() {
+            const n = Math.round((W * H) / 6500);
+            const out = [];
+            for (let i = 0; i < n; i++) {
+                out.push({ x: Math.random() * W, y: Math.random() * H, r: Math.random() * 1.1 + 0.2, a: Math.random() * 0.5 + 0.15 });
+            }
+            return out;
+        }
+
+        function makeBody(x, y, vx, vy, mass, color) {
+            return { x, y, vx, vy, m: mass, r: radiusOf(mass), color, trail: [] };
+        }
+
+        // Seed: one heavy star at the origin + planets on near-circular orbits.
+        function seed() {
+            bodies = [];
+            offX = W / 2; offY = H / 2; scale = 1;
+            bodies.push(makeBody(0, 0, 0, 0, 1, "#ffd27a"));
+            const n = 7;
+            const rMax = Math.min(W, H) / 2.6;
+            // Same orbital direction + well-spread radii keeps the seed scene
+            // stable for a while before chaos inevitably wins.
+            for (let i = 0; i < n; i++) {
+                const r = 80 + (rMax - 80) * (i + 0.5 + Math.random() * 0.2) / n;
+                const a = Math.random() * Math.PI * 2;
+                const x = Math.cos(a) * r, y = Math.sin(a) * r;
+                const v = Math.sqrt(G * 1 / r);          // circular-orbit speed
+                const m = 0.002 + Math.random() * 0.01;
+                bodies.push(makeBody(x, y, -Math.sin(a) * v, Math.cos(a) * v, m, COOL[i % COOL.length]));
+            }
+        }
+
+        // --- physics ---
+        function step(dt) {
+            const sub = dt / SUBSTEPS;
+            for (let s = 0; s < SUBSTEPS; s++) {
+                for (let i = 0; i < bodies.length; i++) {
+                    const a = bodies[i];
+                    let ax = 0, ay = 0;
+                    for (let j = 0; j < bodies.length; j++) {
+                        if (i === j) continue;
+                        const b = bodies[j];
+                        const dx = b.x - a.x, dy = b.y - a.y;
+                        const d2 = dx * dx + dy * dy + EPS2;
+                        const inv = G * b.m / (d2 * Math.sqrt(d2));
+                        ax += dx * inv; ay += dy * inv;
+                    }
+                    a.vx += ax * sub; a.vy += ay * sub;
+                }
+                for (const b of bodies) { b.x += b.vx * sub; b.y += b.vy * sub; }
+                collide();
+            }
+        }
+
+        // Merge overlapping bodies; conserve momentum, blend toward the heavier.
+        function collide() {
+            for (let i = 0; i < bodies.length; i++) {
+                for (let j = i + 1; j < bodies.length; j++) {
+                    const a = bodies[i], b = bodies[j];
+                    const dx = b.x - a.x, dy = b.y - a.y;
+                    const rr = a.r + b.r;
+                    if (dx * dx + dy * dy < rr * rr) {
+                        const big = a.m >= b.m ? a : b;
+                        const m = a.m + b.m;
+                        big.vx = (a.m * a.vx + b.m * b.vx) / m;
+                        big.vy = (a.m * a.vy + b.m * b.vy) / m;
+                        big.x = (a.m * a.x + b.m * b.x) / m;
+                        big.y = (a.m * a.y + b.m * b.y) / m;
+                        big.m = m; big.r = radiusOf(m);
+                        if (big.m >= STAR_MASS) big.color = "#ffd27a";
+                        bodies.splice(a.m >= b.m ? j : i, 1);
+                        j--;
+                    }
+                }
+            }
+            // drop tiny escapees that have wandered far off-world
+            for (let i = bodies.length - 1; i >= 0; i--) {
+                const b = bodies[i];
+                if (b.m < STAR_MASS && Math.hypot(b.x, b.y) > 9000) bodies.splice(i, 1);
+            }
+        }
+
+        // --- render ---
+        let raf = 0, last = 0;
+
+        function frame(t) {
+            const dt = last ? Math.min((t - last) / 1000, 0.05) : 0;
+            last = t;
+            if (playing && dt > 0 && timeMul > 0) step(dt * timeMul);
+            if (playing && showTrails) {
+                for (const b of bodies) {
+                    b.trail.push(b.x, b.y);
+                    if (b.trail.length > TRAIL_LEN * 2) b.trail.splice(0, 2);
+                }
+            }
+            draw();
+            raf = requestAnimationFrame(frame);
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, W, H);
+
+            const bg = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, Math.max(W, H));
+            bg.addColorStop(0, "rgba(18,16,30,0.5)");
+            bg.addColorStop(1, "rgba(6,7,15,0)");
+            ctx.fillStyle = bg;
+            ctx.fillRect(0, 0, W, H);
+
+            for (const s of stars) {
+                ctx.globalAlpha = s.a;
+                ctx.fillStyle = "#cdd6ff";
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+
+            // trails
+            if (showTrails) {
+                for (const b of bodies) {
+                    const tr = b.trail;
+                    if (tr.length < 4) continue;
+                    ctx.strokeStyle = b.color;
+                    ctx.lineWidth = Math.max(b.r * scale * 0.4, 0.6);
+                    const segs = tr.length / 2 - 1;
+                    for (let k = 0; k < segs; k++) {
+                        ctx.globalAlpha = ((k + 1) / segs) * 0.5;
+                        ctx.beginPath();
+                        ctx.moveTo(w2sx(tr[k * 2]), w2sy(tr[k * 2 + 1]));
+                        ctx.lineTo(w2sx(tr[k * 2 + 2]), w2sy(tr[k * 2 + 3]));
+                        ctx.stroke();
+                    }
+                }
+                ctx.globalAlpha = 1;
+            }
+
+            // bodies
+            for (const b of bodies) drawBody(b);
+
+            // aim arrow (slingshot preview)
+            if (aiming) drawAim();
+        }
+
+        function drawBody(b) {
+            const x = w2sx(b.x), y = w2sy(b.y);
+            const r = Math.max(b.r * scale, 1.4);
+            const isStar = b.m >= STAR_MASS;
+
+            if (showGlow) {
+                const gr = isStar ? r * 5 : r * 2.6;
+                const halo = ctx.createRadialGradient(x, y, r * 0.3, x, y, gr);
+                halo.addColorStop(0, isStar ? "rgba(255,190,90,0.5)" : hexToRgba(b.color, 0.28));
+                halo.addColorStop(1, isStar ? "rgba(255,140,40,0)" : hexToRgba(b.color, 0));
+                ctx.fillStyle = halo;
+                ctx.beginPath();
+                ctx.arc(x, y, gr, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            const g = ctx.createRadialGradient(x - r * 0.35, y - r * 0.35, r * 0.1, x, y, r);
+            if (isStar) { g.addColorStop(0, "#fff3cf"); g.addColorStop(0.5, "#ffce6b"); g.addColorStop(1, "#ff9d2e"); }
+            else { g.addColorStop(0, b.color); g.addColorStop(1, shade(b.color, -0.45)); }
+            ctx.fillStyle = g;
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function drawAim() {
+            const sx = w2sx(aimX), sy = w2sy(aimY);
+            const ex = w2sx(curX), ey = w2sy(curY);
+            const r = Math.max(radiusOf(spawnMass) * scale, 2);
+            // ghost body at spawn point
+            ctx.fillStyle = spawnMass >= STAR_MASS ? "rgba(255,206,107,0.6)" : "rgba(160,180,255,0.6)";
+            ctx.beginPath();
+            ctx.arc(sx, sy, r, 0, Math.PI * 2);
+            ctx.fill();
+            // launch vector
+            ctx.strokeStyle = "rgba(255,255,255,0.7)";
+            ctx.lineWidth = 1.4;
+            ctx.setLineDash([5, 4]);
+            ctx.beginPath();
+            ctx.moveTo(sx, sy);
+            ctx.lineTo(ex, ey);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            const ang = Math.atan2(ey - sy, ex - sx);
+            ctx.beginPath();
+            ctx.moveTo(ex, ey);
+            ctx.lineTo(ex - 9 * Math.cos(ang - 0.4), ey - 9 * Math.sin(ang - 0.4));
+            ctx.lineTo(ex - 9 * Math.cos(ang + 0.4), ey - 9 * Math.sin(ang + 0.4));
+            ctx.closePath();
+            ctx.fillStyle = "rgba(255,255,255,0.7)";
+            ctx.fill();
+        }
+
+        function shade(hex, amt) {
+            const n = parseInt(hex.slice(1), 16);
+            let r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+            r = Math.max(0, Math.min(255, Math.round(r + r * amt)));
+            g = Math.max(0, Math.min(255, Math.round(g + g * amt)));
+            b = Math.max(0, Math.min(255, Math.round(b + b * amt)));
+            return `rgb(${r},${g},${b})`;
+        }
+        function hexToRgba(hex, a) {
+            const n = parseInt(hex.slice(1), 16);
+            return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+        }
+
+        // --- interaction ---
+        const ac = new AbortController();
+        const on = (el, ev, fn, opts) => el.addEventListener(ev, fn, { signal: ac.signal, ...(opts || {}) });
+        function localPt(e) {
+            const r = canvas.getBoundingClientRect();
+            return { x: e.clientX - r.left, y: e.clientY - r.top };
+        }
+
+        on(canvas, "pointerdown", (e) => {
+            const pt = localPt(e);
+            aiming = true; aimId = e.pointerId;
+            aimX = curX = s2wx(pt.x); aimY = curY = s2wy(pt.y);
+            canvas.setPointerCapture(e.pointerId);
+        });
+        on(canvas, "pointermove", (e) => {
+            if (!aiming || e.pointerId !== aimId) return;
+            const pt = localPt(e);
+            curX = s2wx(pt.x); curY = s2wy(pt.y);
+        });
+        function launch(e) {
+            if (!aiming || e.pointerId !== aimId) return;
+            aiming = false;
+            if (bodies.length < MAX_BODIES) {
+                // velocity follows the drag direction; 1.5× gives a satisfying flick
+                const vx = (curX - aimX) * 1.5, vy = (curY - aimY) * 1.5;
+                const color = spawnMass >= STAR_MASS ? "#ffd27a" : COOL[(Math.random() * COOL.length) | 0];
+                bodies.push(makeBody(aimX, aimY, vx, vy, spawnMass, color));
+            }
+        }
+        on(canvas, "pointerup", launch);
+        on(canvas, "pointercancel", () => { aiming = false; });
+
+        on(canvas, "wheel", (e) => {
+            e.preventDefault();
+            const pt = localPt(e);
+            const factor = e.deltaY < 0 ? 1.12 : 1 / 1.12;
+            const ns = Math.max(0.25, Math.min(5, scale * factor));
+            const k = ns / scale;
+            // keep the world point under the cursor fixed
+            offX = pt.x - (pt.x - offX) * k;
+            offY = pt.y - (pt.y - offY) * k;
+            scale = ns;
+        }, { passive: false });
+
+        on(playBtn, "click", () => {
+            playing = !playing;
+            playBtn.classList.toggle("is-paused", !playing);
+            playBtn.setAttribute("aria-label", playing ? "Pause" : "Play");
+        });
+        on(resetBtn, "click", seed);
+        on(speedInput, "input", () => {
+            timeMul = sliderToMul(+speedInput.value);
+            speedLabel.textContent = (timeMul === 0 ? "0" : timeMul >= 10 ? Math.round(timeMul) : timeMul) + "×";
+        });
+        on(massInput, "input", () => {
+            spawnMass = sliderToMass(+massInput.value);
+            massLabel.textContent = massWord(spawnMass);
+        });
+        on(trailsBtn, "click", () => {
+            showTrails = !showTrails;
+            trailsBtn.classList.toggle("on", showTrails);
+            if (!showTrails) for (const b of bodies) b.trail.length = 0;
+        });
+        on(glowBtn, "click", () => { showGlow = !showGlow; glowBtn.classList.toggle("on", showGlow); });
+
+        const ro = new ResizeObserver(resize);
+        ro.observe(canvas);
+        on(window, "resize", resize);
+
+        // keep the body count readout fresh without thrashing the DOM each frame
+        const countTimer = setInterval(() => { countEl.textContent = bodies.length + " bodies"; }, 250);
+
+        resize();
+        seed();
+        speedLabel.textContent = (timeMul >= 10 ? Math.round(timeMul) : timeMul) + "×";
+        massLabel.textContent = massWord(spawnMass);
+        countEl.textContent = bodies.length + " bodies";
+        raf = requestAnimationFrame(frame);
+
+        document.addEventListener("astro:before-swap", () => {
+            cancelAnimationFrame(raf);
+            clearInterval(countTimer);
+            ro.disconnect();
+            ac.abort();
+        }, { once: true });
+    });
+</script>
