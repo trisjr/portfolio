@@ -15,6 +15,13 @@ const featured = (await getCollection("projects"))
     .filter((p) => p.data.featured)
     .sort((a, b) => a.data.order - b.data.order)
     .slice(0, 3);
+
+const latestLab = (await getCollection("lab")).sort(
+    (a, b) => a.data.order - b.data.order,
+)[0];
+const latestPost = (await getCollection("blog")).sort(
+    (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+)[0];
 ---
 
 <Layout title="TrisJr — Full-Stack Developer" active="home">
@@ -146,6 +153,42 @@ const featured = (await getCollection("projects"))
                         </ul>
                     </div>
                 ))}
+            </div>
+        </section>
+
+        <!-- LAB & WRITING -->
+        <section class="section wrap" data-screen-label="Lab & writing">
+            <div class="feat-head">
+                <div>
+                    <p class="kicker reveal">Beyond the work</p>
+                    <h2 class="section-title h-glow reveal" data-d="1">Lab &amp; writing</h2>
+                </div>
+            </div>
+            <div class="explore">
+                {latestLab && (
+                    <a class="card xcard reveal" data-d="1" href={url(`/lab/${latestLab.id}`)} style={`--tint:${latestLab.data.tint}`}>
+                        <span class="xcard__tag">Latest experiment</span>
+                        <h3>{latestLab.data.title}</h3>
+                        <p>{latestLab.data.excerpt}</p>
+                        <span class="arrow-link">Open the Lab
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M5 12h14M13 6l6 6-6 6"/>
+                            </svg>
+                        </span>
+                    </a>
+                )}
+                {latestPost && (
+                    <a class="card xcard reveal" data-d="2" href={url(`/blog/${latestPost.id}`)} style={`--tint:${latestPost.data.tint}`}>
+                        <span class="xcard__tag">Latest post</span>
+                        <h3>{latestPost.data.title}</h3>
+                        <p>{latestPost.data.excerpt}</p>
+                        <span class="arrow-link">Read the blog
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M5 12h14M13 6l6 6-6 6"/>
+                            </svg>
+                        </span>
+                    </a>
+                )}
             </div>
         </section>
 

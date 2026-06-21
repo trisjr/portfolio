@@ -19,13 +19,13 @@ roles:
 heroBio: I'm TrisJr — a full-stack engineer who builds technically complex web platforms, from ad-tech and enterprise workflow systems to AI-native tooling that treats AI as a teammate.
 footerTagline: Full-stack developer & system architect, building fast, thoughtful, AI-native software from Hue, Vietnam.
 aboutPreviewTitle: An engineer who builds products, not just features.
-aboutPreviewBio: Over 3+ years I've shipped technically complex web applications across ad-tech, healthcare, gov-tech and SaaS. I care about the system beneath the screen — RBAC that holds under load, financial syncs that always reconcile, and now AI workflows that actually do the work. Equal parts engineer and product thinker.
+aboutPreviewBio: I care about the system beneath the screen — RBAC that holds under load, two-phase financial syncs that always reconcile, and AI workflows that do real work instead of demos. Three years in, I've learned the best code starts from the outcome a person needs, not the ticket. Equal parts engineer and product thinker.
 aboutBio:
   - I'm a Software Engineer based in Vietnam, a graduate in Information Technology from Hue University of Sciences. For 3+ years I've built technically complex web applications — Facebook ads management, multi-level approval systems, loyalty platforms and healthcare digitization — usually owning both the frontend and the services humming beneath it.
   - Lately I've gone all-in on AI-native engineering. I'm building TNMCORE-OS, an operating system that turns Agile/Scrum into a multi-agent SDLC, and CommandCenter AI, an end-to-end content studio. I'm happiest with a hard system-design problem, a clear spec, and far too much coffee.
 stats:
   - { value: 3, suffix: "+", label: Years building }
-  - { value: 11, suffix: "+", label: Projects shipped }
+  - { value: 11, suffix: "", label: Projects shipped }
   - { value: 6, suffix: "", label: Domains delivered }
 terminal:
   role: Full-Stack Developer
