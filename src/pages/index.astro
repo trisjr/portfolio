@@ -24,7 +24,7 @@ const latestPost = (await getCollection("blog")).sort(
 )[0];
 ---
 
-<Layout title="TrisJr — Full-Stack Developer" active="home">
+<Layout title="TrisJr — Full-Stack Developer & AI-Native Architect" active="home">
     <main>
         <!-- HERO -->
         <header class="hero wrap" data-screen-label="Hero">
@@ -136,6 +136,30 @@ const latestPost = (await getCollection("blog")).sort(
                             </div>
                         </div>
                     </a>
+                ))}
+            </div>
+        </section>
+
+        <!-- TRACK RECORD -->
+        <section class="section section--tight wrap" data-screen-label="Track record">
+            <div class="feat-head">
+                <div>
+                    <p class="kicker reveal">Track record</p>
+                    <h2 class="section-title h-glow reveal" data-d="1">Shipping across teams &amp; domains</h2>
+                </div>
+                <a class="arrow-link reveal" data-d="2" href={url("/about")}>Full experience log
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M5 12h14M13 6l6 6-6 6"/>
+                    </svg>
+                </a>
+            </div>
+            <div class="track">
+                {me.jobs.map((j, i) => (
+                    <div class="track__item reveal" data-d={i + 1}>
+                        <span class="track__yr">{j.yr}</span>
+                        <h4>{j.role}</h4>
+                        <p class="track__org">{j.org}</p>
+                    </div>
                 ))}
             </div>
         </section>

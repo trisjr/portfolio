@@ -388,6 +388,38 @@
     box-shadow: 0 0 7px var(--accent);
 }
 
+/* track record */
+.track {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--lg);
+}
+
+.track__item {
+    padding: var(--lg) var(--xl) var(--xl);
+    border-left: 1px solid var(--line);
+}
+
+.track__item h4 {
+    font-size: 16px;
+    margin: 10px 0 6px;
+    color: var(--text);
+}
+
+.track__yr {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+}
+
+.track__org {
+    color: var(--dim);
+    font-size: 13.5px;
+    margin: 0;
+}
+
 /* lab & writing */
 .explore {
     display: grid;
@@ -483,6 +515,16 @@
     }
 
     .explore {
+        grid-template-columns: 1fr;
+    }
+
+    .track {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 560px) {
+    .track {
         grid-template-columns: 1fr;
     }
 }
