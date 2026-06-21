@@ -165,43 +165,50 @@
     display: none;
 }
 
+/* The overlay itself is the scroll container. Centering the panel with an
+   absolute transform + its own `overflow-y:auto` was unreliable on mobile:
+   `vh` units ignore the address bar, so the panel sat partly off-screen and
+   touch-scrolling the inner container often failed entirely. A flex overlay
+   that scrolls — with the panel centered via `margin:auto` — is robust: when
+   content is taller than the viewport, the auto margins collapse to 0 (per
+   spec) so the panel top stays reachable instead of being clipped. */
 .modal.open {
-    display: block;
+    display: flex;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    padding: 24px 16px;
 }
 
 .modal__scrim {
-    position: absolute;
+    position: fixed;
     inset: 0;
     background: rgba(5, 7, 20, .78);
     backdrop-filter: blur(8px);
 }
 
 .modal__panel {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -48%);
+    position: relative;
+    margin: auto;
     width: min(760px, 92vw);
-    max-height: 88vh;
-    overflow-y: auto;
     opacity: 0;
-    transition: all .4s var(--ease);
+    transform: translateY(16px);
+    transition: opacity .4s var(--ease), transform .4s var(--ease);
     border-radius: 24px;
     /* Near-opaque so background grid cards don't bleed through the glass panel
        (the default translucent --panel let card edges show as stray lines). */
     background: rgba(13, 17, 40, .97);
 }
 
-/* The panel scrolls (overflow-y:auto), so .card's absolutely-positioned
-   gradient-border ::before gets anchored to the scroll content — its bottom
-   edge slides into the middle of the panel as a stray horizontal line on hover.
-   Disable it here; the panel keeps its solid .card border. */
+/* The panel's hero/content has its own rounded top; .card's gradient-border
+   ::before is redundant here and only adds visual noise on the large panel.
+   Disable it; the panel keeps its solid .card border. */
 .modal__panel::before {
     content: none;
 }
 
 .modal.open .modal__panel {
-    transform: translate(-50%, -50%);
+    transform: translateY(0);
     opacity: 1;
 }
 
