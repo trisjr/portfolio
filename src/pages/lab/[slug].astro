@@ -3,6 +3,7 @@ import { getCollection, getEntry, render } from "astro:content";
 import Layout from "../../layouts/Layout.astro";
 import SolarSystem from "../../components/lab/SolarSystem.astro";
 import GravitySandbox from "../../components/lab/GravitySandbox.astro";
+import Slingshot from "../../components/lab/Slingshot.astro";
 import { url } from "../../lib/path";
 import "../../styles/pages/lab-detail.css";
 
@@ -47,6 +48,7 @@ const e = entry.data;
         <section class="wrap lab-detail__stage reveal" style={`--tint:${e.tint}`}>
             {e.demo === "solar-system" && <SolarSystem />}
             {e.demo === "gravity-sandbox" && <GravitySandbox />}
+            {e.demo === "slingshot" && <Slingshot />}
         </section>
 
         <section class="wrap">

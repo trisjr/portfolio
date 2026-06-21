@@ -1,0 +1,497 @@
+---
+// Slingshot — gravity-assist simulator. Pure Canvas 2D + vanilla JS.
+// Planets orbit on gravitationally-correct parametric tracks; the probe
+// integrates real Newtonian gravity. Trajectory preview shows path ahead.
+// Inits on `astro:page-load`, tears down on `astro:before-swap`.
+---
+
+<div class="sling" data-sling>
+    <canvas class="sling__canvas" data-sling-canvas></canvas>
+
+    <div class="sling__hud">
+        <button class="sling__btn" data-sling-play aria-label="Pause">
+            <svg class="ic-pause" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+            <svg class="ic-play" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5.5v13a1 1 0 0 0 1.5.87l11-6.5a1 1 0 0 0 0-1.74l-11-6.5A1 1 0 0 0 7 5.5z"/></svg>
+        </button>
+        <button class="sling__btn" data-sling-reset aria-label="New probe">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+        </button>
+    </div>
+
+    <div class="sling__panel">
+        <label class="sling__slider">
+            <span>Time</span>
+            <input type="range" min="0" max="100" value="40" data-sling-speed aria-label="Time speed">
+            <b data-sling-speed-label>1×</b>
+        </label>
+        <div class="sling__toggles">
+            <button class="sling__chip on" data-sling-predict>Predict</button>
+            <button class="sling__chip on" data-sling-trails>Trail</button>
+        </div>
+    </div>
+
+    <span class="sling__hint">Drag anywhere to aim · scroll to zoom</span>
+    <div class="sling__readout">
+        <span class="sling__readout-status" data-sling-status>Ready to fire</span>
+        <span class="sling__readout-speed" data-sling-spd></span>
+    </div>
+</div>
+
+<script>
+document.addEventListener("astro:page-load", () => {
+    const root = document.querySelector("[data-sling]");
+    if (!root) return;
+    const canvas = root.querySelector("[data-sling-canvas]");
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const playBtn    = root.querySelector("[data-sling-play]");
+    const resetBtn   = root.querySelector("[data-sling-reset]");
+    const speedInput = root.querySelector("[data-sling-speed]");
+    const speedLabel = root.querySelector("[data-sling-speed-label]");
+    const predictBtn = root.querySelector("[data-sling-predict]");
+    const trailsBtn  = root.querySelector("[data-sling-trails]");
+    const statusEl   = root.querySelector("[data-sling-status]");
+    const spdEl      = root.querySelector("[data-sling-spd]");
+
+    // ---- constants ----
+    const G          = 1.6e6;
+    const EPS2       = 8 * 8;
+    const WORLD_R    = 570;
+    const TRAIL_LEN  = 110;
+    const PRED_STEPS = 1400;
+    const PRED_DT    = 0.022;
+    const SUBSTEPS   = 3;
+    const VEL_FACTOR = 0.52;
+
+    // ---- bodies ----
+    const sun = { m: 1.5, r: 24 };
+    const planets = [
+        { name: "Hermes", color: "#4aa3e0", dist: 120, m: 0.003, r: 7,  period: 5.2,  theta: 1.0  },
+        { name: "Juno",   color: "#d8a878", dist: 248, m: 0.12,  r: 19, period: 16.4, theta: 2.7  },
+        { name: "Lyra",   color: "#9adfe6", dist: 390, m: 0.028, r: 13, period: 32.8, theta: 4.4  },
+    ];
+
+    // ---- view ----
+    let W = 0, H = 0, dpr = 1;
+    let scale = 0.56;
+    let stars = [];
+
+    // ---- simulation state ----
+    let simTime    = 0;
+    let playing    = true;
+    let timeMul    = sliderToMul(+speedInput.value);
+    let probe      = null;
+    let probeState = "idle"; // idle | aiming | flying | escaped | crashed
+    let crashName  = "";
+    let bestSpeed  = 0;
+    let predicted  = [];
+    let showPredict = true;
+    let showTrails  = true;
+
+    // ---- drag ----
+    let aiming = false, aimId = -1;
+    let aimX = 0, aimY = 0, curX = 0, curY = 0; // world coords
+
+    // ---- helpers ----
+    function sliderToMul(v) {
+        if (v <= 0) return 0;
+        return +(Math.pow(v / 100, 1.6) * 2.5).toFixed(2);
+    }
+    const w2sx = (wx) => W / 2 + wx * scale;
+    const w2sy = (wy) => H / 2 + wy * scale;
+    const s2wx = (sx) => (sx - W / 2) / scale;
+    const s2wy = (sy) => (sy - H / 2) / scale;
+
+    function plPos(pl, t) {
+        const th = pl.theta + (t * Math.PI * 2) / pl.period;
+        return { x: Math.cos(th) * pl.dist, y: Math.sin(th) * pl.dist };
+    }
+
+    function gravAccel(px, py, t) {
+        let ax = 0, ay = 0;
+        const sd2 = px * px + py * py + EPS2;
+        const si  = G * sun.m / (sd2 * Math.sqrt(sd2));
+        ax -= si * px; ay -= si * py;
+        for (const pl of planets) {
+            const p  = plPos(pl, t);
+            const dx = p.x - px, dy = p.y - py;
+            const d2 = dx * dx + dy * dy + EPS2;
+            const f  = G * pl.m / (d2 * Math.sqrt(d2));
+            ax += dx * f; ay += dy * f;
+        }
+        return { ax, ay };
+    }
+
+    function predictPath(sx, sy, svx, svy, t0) {
+        const path = [];
+        let px = sx, py = sy, pvx = svx, pvy = svy, t = t0;
+        for (let i = 0; i < PRED_STEPS; i++) {
+            const { ax, ay } = gravAccel(px, py, t);
+            pvx += ax * PRED_DT; pvy += ay * PRED_DT;
+            px  += pvx * PRED_DT; py  += pvy * PRED_DT;
+            t   += PRED_DT;
+            if (px * px + py * py < sun.r * sun.r * 0.9) {
+                path.push({ x: px, y: py, end: "sun" }); return path;
+            }
+            let hit = null;
+            for (const pl of planets) {
+                const pp = plPos(pl, t);
+                const dx = pp.x - px, dy = pp.y - py;
+                if (dx * dx + dy * dy < pl.r * pl.r) { hit = pl.name; break; }
+            }
+            if (hit) { path.push({ x: px, y: py, end: "planet", name: hit }); return path; }
+            if (px * px + py * py > WORLD_R * WORLD_R) {
+                path.push({ x: px, y: py, end: "escape" }); return path;
+            }
+            path.push({ x: px, y: py });
+        }
+        return path;
+    }
+
+    // ---- resize ----
+    function resize() {
+        const rect = canvas.getBoundingClientRect();
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
+        W = rect.width; H = rect.height;
+        canvas.width  = Math.round(W * dpr);
+        canvas.height = Math.round(H * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        stars = makeStars();
+    }
+
+    function makeStars() {
+        const n = Math.round(W * H / 6500);
+        const out = [];
+        for (let i = 0; i < n; i++)
+            out.push({ x: Math.random() * W, y: Math.random() * H, r: Math.random() * 1.1 + 0.2, a: Math.random() * 0.5 + 0.15 });
+        return out;
+    }
+
+    // ---- physics ----
+    function stepProbe(dt) {
+        if (!probe || probeState !== "flying") return;
+        const sub = dt / SUBSTEPS;
+        for (let s = 0; s < SUBSTEPS; s++) {
+            const { ax, ay } = gravAccel(probe.x, probe.y, simTime);
+            probe.vx += ax * sub; probe.vy += ay * sub;
+            probe.x  += probe.vx * sub; probe.y  += probe.vy * sub;
+            simTime  += sub;
+            if (probe.x * probe.x + probe.y * probe.y < sun.r * sun.r) {
+                probeState = "crashed"; crashName = "the Sun"; return;
+            }
+            for (const pl of planets) {
+                const pp = plPos(pl, simTime);
+                const dx = pp.x - probe.x, dy = pp.y - probe.y;
+                if (dx * dx + dy * dy < pl.r * pl.r) {
+                    probeState = "crashed"; crashName = pl.name; return;
+                }
+            }
+            if (probe.x * probe.x + probe.y * probe.y > WORLD_R * WORLD_R) {
+                bestSpeed = Math.max(bestSpeed, Math.round(Math.hypot(probe.vx, probe.vy)));
+                probeState = "escaped"; return;
+            }
+        }
+        const spd = Math.round(Math.hypot(probe.vx, probe.vy));
+        if (spd > bestSpeed) bestSpeed = spd;
+    }
+
+    // ---- render loop ----
+    let raf = 0, last = 0;
+
+    function frame(t) {
+        const dt = last ? Math.min((t - last) / 1000, 0.05) : 0;
+        last = t;
+
+        if (playing && dt > 0) {
+            if (probeState !== "flying") simTime += dt * timeMul;
+            else stepProbe(dt * timeMul);
+        }
+
+        if (probeState === "flying" && probe && showPredict)
+            predicted = predictPath(probe.x, probe.y, probe.vx, probe.vy, simTime);
+
+        if (probe && probeState === "flying" && showTrails) {
+            probe.trail.push(probe.x, probe.y);
+            if (probe.trail.length > TRAIL_LEN * 2) probe.trail.splice(0, 2);
+        }
+
+        draw();
+        updateHUD();
+        raf = requestAnimationFrame(frame);
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, W, H);
+
+        const bg = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, Math.max(W, H));
+        bg.addColorStop(0, "rgba(18,16,30,.5)");
+        bg.addColorStop(1, "rgba(6,7,15,0)");
+        ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+
+        for (const s of stars) {
+            ctx.globalAlpha = s.a;
+            ctx.fillStyle = "#cdd6ff";
+            ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+
+        ctx.strokeStyle = "rgba(255,255,255,0.06)"; ctx.lineWidth = 1;
+        for (const pl of planets) {
+            ctx.beginPath(); ctx.arc(W / 2, H / 2, pl.dist * scale, 0, Math.PI * 2); ctx.stroke();
+        }
+
+        ctx.strokeStyle = "rgba(80,220,180,0.07)"; ctx.lineWidth = 1;
+        ctx.setLineDash([4, 8]);
+        ctx.beginPath(); ctx.arc(W / 2, H / 2, WORLD_R * scale, 0, Math.PI * 2); ctx.stroke();
+        ctx.setLineDash([]);
+
+        if (showPredict && predicted.length > 1) drawPredicted();
+
+        drawSun();
+        for (const pl of planets) drawPlanet(pl);
+
+        if (probe && showTrails && probe.trail.length >= 4) drawTrail();
+        if (probe && probeState === "flying") drawProbe();
+        if (aiming) drawAim();
+    }
+
+    function drawPredicted() {
+        const total = predicted.length;
+        const last  = predicted[total - 1];
+        const SKIP  = 3;
+        ctx.lineWidth = 1.2;
+        for (let i = 0; i < total - SKIP; i += SKIP) {
+            const a = predicted[i], b = predicted[i + SKIP];
+            const alpha = (1 - i / total) * 0.52;
+            ctx.strokeStyle = `rgba(80,220,180,${alpha.toFixed(2)})`;
+            ctx.beginPath();
+            ctx.moveTo(w2sx(a.x), w2sy(a.y));
+            ctx.lineTo(w2sx(b.x), w2sy(b.y));
+            ctx.stroke();
+        }
+        if (last) {
+            const color = (last.end === "sun" || last.end === "planet")
+                ? "rgba(255,100,100,0.75)"
+                : last.end === "escape"
+                    ? "rgba(70,224,160,0.75)"
+                    : "rgba(80,220,180,0.3)";
+            ctx.fillStyle = color;
+            ctx.beginPath(); ctx.arc(w2sx(last.x), w2sy(last.y), 4, 0, Math.PI * 2); ctx.fill();
+        }
+    }
+
+    function drawSun() {
+        const sx = W / 2, sy = H / 2, sr = sun.r * scale;
+        const halo = ctx.createRadialGradient(sx, sy, sr * 0.3, sx, sy, sr * 4.5);
+        halo.addColorStop(0, "rgba(255,180,80,.55)"); halo.addColorStop(1, "rgba(255,140,40,0)");
+        ctx.fillStyle = halo; ctx.beginPath(); ctx.arc(sx, sy, sr * 4.5, 0, Math.PI * 2); ctx.fill();
+        const g = ctx.createRadialGradient(sx - sr * 0.3, sy - sr * 0.3, sr * 0.1, sx, sy, sr);
+        g.addColorStop(0, "#fff3cf"); g.addColorStop(0.5, "#ffcf6b"); g.addColorStop(1, "#ff9d2e");
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(sx, sy, sr, 0, Math.PI * 2); ctx.fill();
+    }
+
+    function drawPlanet(pl) {
+        const pos = plPos(pl, simTime);
+        const sx = w2sx(pos.x), sy = w2sy(pos.y);
+        const r  = Math.max(pl.r * scale, 2);
+        const halo = ctx.createRadialGradient(sx, sy, r * 0.3, sx, sy, r * 3.2);
+        halo.addColorStop(0, hexRgba(pl.color, 0.28)); halo.addColorStop(1, hexRgba(pl.color, 0));
+        ctx.fillStyle = halo; ctx.beginPath(); ctx.arc(sx, sy, r * 3.2, 0, Math.PI * 2); ctx.fill();
+        const g = ctx.createRadialGradient(sx - r * 0.35, sy - r * 0.35, r * 0.1, sx, sy, r);
+        g.addColorStop(0, pl.color); g.addColorStop(1, shade(pl.color, -0.45));
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(sx, sy, r, 0, Math.PI * 2); ctx.fill();
+        ctx.font = "11px 'IBM Plex Mono', monospace";
+        ctx.fillStyle = "rgba(200,210,240,0.42)";
+        ctx.textAlign = "center";
+        ctx.fillText(pl.name, sx, sy - r - 6);
+    }
+
+    function drawTrail() {
+        const tr   = probe.trail;
+        const segs = tr.length / 2 - 1;
+        ctx.lineWidth = Math.max(1.6 * scale, 0.8);
+        for (let k = 0; k < segs; k++) {
+            ctx.globalAlpha = ((k + 1) / segs) * 0.55;
+            ctx.strokeStyle = "#50dcc8";
+            ctx.beginPath();
+            ctx.moveTo(w2sx(tr[k * 2]),     w2sy(tr[k * 2 + 1]));
+            ctx.lineTo(w2sx(tr[k * 2 + 2]), w2sy(tr[k * 2 + 3]));
+            ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+    }
+
+    function drawProbe() {
+        const sx = w2sx(probe.x), sy = w2sy(probe.y);
+        const r  = Math.max(4.5 * scale, 2.5);
+        const halo = ctx.createRadialGradient(sx, sy, r * 0.3, sx, sy, r * 4.2);
+        halo.addColorStop(0, "rgba(80,220,180,.52)"); halo.addColorStop(1, "rgba(80,220,180,0)");
+        ctx.fillStyle = halo; ctx.beginPath(); ctx.arc(sx, sy, r * 4.2, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#a8f0e0";
+        ctx.beginPath(); ctx.arc(sx, sy, r, 0, Math.PI * 2); ctx.fill();
+        const spd = Math.hypot(probe.vx, probe.vy);
+        if (spd > 0) {
+            const len = Math.min(spd * scale * 0.045, 24);
+            const nx = probe.vx / spd, ny = probe.vy / spd;
+            ctx.strokeStyle = "rgba(160,240,224,0.6)"; ctx.lineWidth = 1.4;
+            ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(sx + nx * len, sy + ny * len); ctx.stroke();
+        }
+    }
+
+    function drawAim() {
+        const asx = w2sx(aimX), asy = w2sy(aimY);
+        const csx = w2sx(curX), csy = w2sy(curY);
+        const r   = Math.max(4.5 * scale, 3);
+        ctx.fillStyle = "rgba(80,220,180,0.5)";
+        ctx.beginPath(); ctx.arc(asx, asy, r, 0, Math.PI * 2); ctx.fill();
+        const ang = Math.atan2(csy - asy, csx - asx);
+        ctx.strokeStyle = "rgba(80,220,180,0.65)"; ctx.lineWidth = 1.4;
+        ctx.setLineDash([5, 4]);
+        ctx.beginPath(); ctx.moveTo(asx, asy); ctx.lineTo(csx, csy); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.beginPath();
+        ctx.moveTo(csx, csy);
+        ctx.lineTo(csx - 9 * Math.cos(ang - 0.4), csy - 9 * Math.sin(ang - 0.4));
+        ctx.lineTo(csx - 9 * Math.cos(ang + 0.4), csy - 9 * Math.sin(ang + 0.4));
+        ctx.closePath(); ctx.fillStyle = "rgba(80,220,180,0.8)"; ctx.fill();
+    }
+
+    function updateHUD() {
+        if (probeState === "idle") {
+            statusEl.textContent = "Ready to fire";
+            statusEl.className = "sling__readout-status";
+            spdEl.textContent = bestSpeed > 0 ? `Best: ${bestSpeed} km/s` : "";
+        } else if (probeState === "aiming") {
+            const vx = (curX - aimX) * VEL_FACTOR, vy = (curY - aimY) * VEL_FACTOR;
+            const s  = Math.round(Math.hypot(vx, vy));
+            statusEl.textContent = `Launch at ${s} km/s`;
+            statusEl.className = "sling__readout-status";
+            spdEl.textContent = bestSpeed > 0 ? `Best: ${bestSpeed} km/s` : "";
+        } else if (probeState === "flying" && probe) {
+            const spd = Math.round(Math.hypot(probe.vx, probe.vy));
+            statusEl.textContent = "In flight";
+            statusEl.className = "sling__readout-status";
+            spdEl.textContent = `v = ${spd} km/s`;
+        } else if (probeState === "escaped") {
+            statusEl.textContent = `Escaped!  v = ${bestSpeed} km/s`;
+            statusEl.className = "sling__readout-status escaped";
+            spdEl.textContent = "Click or press R to fire again";
+        } else if (probeState === "crashed") {
+            statusEl.textContent = `Crashed into ${crashName}`;
+            statusEl.className = "sling__readout-status crashed";
+            spdEl.textContent = "Click or press R to fire again";
+        }
+    }
+
+    // ---- interaction ----
+    const ac = new AbortController();
+    const on = (el, ev, fn, opts) => el.addEventListener(ev, fn, { signal: ac.signal, ...(opts || {}) });
+
+    function localPt(e) {
+        const rect = canvas.getBoundingClientRect();
+        return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    }
+
+    function resetProbe() {
+        probe = null; probeState = "idle"; aiming = false; predicted = [];
+    }
+
+    on(canvas, "pointerdown", (e) => {
+        if (probeState === "escaped" || probeState === "crashed") { resetProbe(); return; }
+        if (probeState === "flying") return;
+        aiming = true; aimId = e.pointerId;
+        const pt = localPt(e);
+        aimX = curX = s2wx(pt.x); aimY = curY = s2wy(pt.y);
+        canvas.setPointerCapture(e.pointerId);
+        probeState = "aiming";
+        predicted = predictPath(aimX, aimY, 0, 0, simTime);
+    });
+
+    on(canvas, "pointermove", (e) => {
+        if (!aiming || e.pointerId !== aimId) return;
+        const pt = localPt(e);
+        curX = s2wx(pt.x); curY = s2wy(pt.y);
+        const vx = (curX - aimX) * VEL_FACTOR, vy = (curY - aimY) * VEL_FACTOR;
+        predicted = predictPath(aimX, aimY, vx, vy, simTime);
+    });
+
+    on(canvas, "pointerup", (e) => {
+        if (!aiming || e.pointerId !== aimId) return;
+        aiming = false;
+        const dist = Math.hypot(curX - aimX, curY - aimY);
+        if (dist < 4 / scale) { probeState = "idle"; predicted = []; return; }
+        const vx = (curX - aimX) * VEL_FACTOR, vy = (curY - aimY) * VEL_FACTOR;
+        probe = { x: aimX, y: aimY, vx, vy, trail: [] };
+        probeState = "flying";
+        predicted = predictPath(probe.x, probe.y, probe.vx, probe.vy, simTime);
+    });
+
+    on(canvas, "pointercancel", () => { aiming = false; if (probeState === "aiming") probeState = "idle"; predicted = []; });
+
+    on(canvas, "wheel", (e) => {
+        e.preventDefault();
+        const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
+        scale = Math.max(0.28, Math.min(1.8, scale * factor));
+    }, { passive: false });
+
+    on(playBtn, "click", () => {
+        playing = !playing;
+        playBtn.classList.toggle("is-paused", !playing);
+        playBtn.setAttribute("aria-label", playing ? "Pause" : "Play");
+    });
+
+    on(resetBtn, "click", resetProbe);
+
+    on(speedInput, "input", () => {
+        timeMul = sliderToMul(+speedInput.value);
+        speedLabel.textContent = (timeMul === 0 ? "0" : timeMul >= 10 ? Math.round(timeMul) : timeMul) + "×";
+    });
+
+    on(predictBtn, "click", () => {
+        showPredict = !showPredict;
+        predictBtn.classList.toggle("on", showPredict);
+        if (!showPredict) predicted = [];
+    });
+
+    on(trailsBtn, "click", () => {
+        showTrails = !showTrails;
+        trailsBtn.classList.toggle("on", showTrails);
+        if (!showTrails && probe) probe.trail.length = 0;
+    });
+
+    on(document, "keydown", (e) => {
+        if ((e.key === "r" || e.key === "R") && (probeState === "escaped" || probeState === "crashed"))
+            resetProbe();
+    });
+
+    // ---- utils ----
+    function shade(hex, amt) {
+        const n = parseInt(hex.slice(1), 16);
+        let r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+        r = Math.max(0, Math.min(255, Math.round(r + r * amt)));
+        g = Math.max(0, Math.min(255, Math.round(g + g * amt)));
+        b = Math.max(0, Math.min(255, Math.round(b + b * amt)));
+        return `rgb(${r},${g},${b})`;
+    }
+    function hexRgba(hex, a) {
+        const n = parseInt(hex.slice(1), 16);
+        return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+    }
+
+    // ---- init ----
+    const ro = new ResizeObserver(resize);
+    ro.observe(canvas);
+    on(window, "resize", resize);
+
+    resize();
+    speedLabel.textContent = (timeMul >= 10 ? Math.round(timeMul) : timeMul) + "×";
+    raf = requestAnimationFrame(frame);
+
+    document.addEventListener("astro:before-swap", () => {
+        cancelAnimationFrame(raf);
+        ro.disconnect();
+        ac.abort();
+    }, { once: true });
+});
+</script>
