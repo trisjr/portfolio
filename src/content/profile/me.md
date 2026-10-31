@@ -19,13 +19,13 @@ roles:
 heroBio: I'm TrisJr — a full-stack engineer who builds technically complex web platforms, from ad-tech and enterprise workflow systems to AI-native tooling that treats AI as a teammate.
 footerTagline: Full-stack developer & system architect, building fast, thoughtful, AI-native software from Hue, Vietnam.
 aboutPreviewTitle: An engineer who builds products, not just features.
-aboutPreviewBio: I care about the system beneath the screen — RBAC that holds under load, two-phase financial syncs that always reconcile, and AI workflows that do real work instead of demos. Three years in, I've learned the best code starts from the outcome a person needs, not the ticket. Equal parts engineer and product thinker.
+aboutPreviewBio: I care about the system beneath the screen — RBAC that holds under load, two-phase financial syncs that always reconcile, and AI workflows that do real work instead of demos. Four-plus years in, I've learned the best code starts from the outcome a person needs, not the ticket. Equal parts engineer and product thinker.
 aboutBio:
-  - I'm a Software Engineer based in Vietnam, a graduate in Information Technology from Hue University of Sciences. For 3+ years I've built technically complex web applications — Facebook ads management, multi-level approval systems, loyalty platforms and healthcare digitization — usually owning both the frontend and the services humming beneath it.
-  - Lately I've gone all-in on AI-native engineering. I'm building TNMCORE-OS, an operating system that turns Agile/Scrum into a multi-agent SDLC, and CommandCenter AI, an end-to-end content studio. I'm happiest with a hard system-design problem, a clear spec, and far too much coffee.
+  - I'm a Software Engineer based in Vietnam, a graduate in Information Technology from Hue University of Sciences. For 4+ years I've built technically complex web applications — Facebook ads management and automation, multi-level approval systems, loyalty platforms and healthcare digitization — usually owning both the frontend and the services humming beneath it.
+  - Lately I've gone all-in on AI-native engineering. I'm building TNMCORE-OS, an operating system that turns Agile/Scrum into a multi-agent SDLC, BrandsWin, an end-to-end content studio, and AgentRelay, an open plugin marketplace of reusable workflows for AI coding agents. I'm happiest with a hard system-design problem, a clear spec, and far too much coffee.
 stats:
-  - { value: 3, suffix: "+", label: Years building }
-  - { value: 11, suffix: "", label: Projects shipped }
+  - { value: 4, suffix: "+", label: Years building }
+  - { value: 14, suffix: "", label: Projects shipped }
   - { value: 6, suffix: "", label: Domains delivered }
 terminal:
   role: Full-Stack Developer
@@ -67,12 +67,12 @@ constellation:
 jobs:
   - yr: 2026 — Now
     role: AI-Native Architect
-    org: TNMCORE-OS · CommandCenter AI
-    desc: Architecting an AI-native team OS that turns Agile/Scrum into a multi-agent SDLC, plus an end-to-end social content studio powered by GPT-4o and Gemini.
+    org: TNMCORE-OS · BrandsWin · AgentRelay
+    desc: Architecting an AI-native team OS that turns Agile/Scrum into a multi-agent SDLC, an end-to-end social content studio powered by GPT-4o and Gemini, and a cross-platform plugin marketplace for AI coding agents.
   - yr: 2025 — Now
     role: Full-Stack Developer
-    org: HPMA · PMS · LoyalWin
-    desc: Built ad-account management, enterprise project workflows and loyalty platforms — two-phase financial syncs, multi-level approvals and CASL RBAC across Vue/React and NestJS.
+    org: HPMA · HPMA Tools · PMS · LoyalWin
+    desc: Built ad-account management, a Business Manager automation suite with a browser-extension copilot, enterprise project workflows and loyalty platforms — two-phase financial syncs, multi-level approvals and CASL RBAC across Vue/React and NestJS.
   - yr: 2024 — 2025
     role: Web Developer
     org: Kingprint · Infonet · Unitel
@@ -89,16 +89,17 @@ values:
   - title: AI as a teammate
     desc: I build software where AI does real work — not a demo. Automation should remove the toil, not add a new kind of it.
 socials:
-  - { name: GitHub, icon: github, url: "https://github.com/tenomad-company" }
+  - { name: GitHub, icon: github, url: "https://github.com/trisjr" }
   - { name: LinkedIn, icon: linkedin, url: "https://www.linkedin.com/in/trisjr/" }
   - { name: X, icon: x, url: "https://x.com/trisjr" }
 elsewhere:
-  - { name: GitHub, url: "https://github.com/tenomad-company" }
+  - { name: GitHub, url: "https://github.com/trisjr" }
   - { name: LinkedIn, url: "https://www.linkedin.com/in/trisjr/" }
 contact:
   channels:
-    - { name: Email, icon: email, value: trivo@tenomad.com, url: "mailto:trivo@tenomad.com" }
-    - { name: GitHub, icon: github, value: github.com/tenomad-company, url: "https://github.com/tenomad-company" }
+    - { name: Email, icon: email, value: vokimtrivkt@gmail.com, url: "mailto:vokimtrivkt@gmail.com" }
+    - { name: Email, icon: email, value: trisjr.dev@gmail.com, url: "mailto:trisjr.dev@gmail.com" }
+    - { name: GitHub, icon: github, value: github.com/trisjr, url: "https://github.com/trisjr" }
     - { name: LinkedIn, icon: linkedin, value: in/trisjr, url: "https://www.linkedin.com/in/trisjr/" }
   status: Currently available · responds within 24h · UTC+7
 # Corporate-style CV (rendered on /resume). Structure & skill content adapted
@@ -110,7 +111,7 @@ cv:
     degree: B.Sc. in Information Technology
     school: Hue University of Sciences, Vietnam
   summary:
-    - Programmer with 3+ years of experience building technically complex web applications using Java, NodeJS, NestJS, C#, ReactJS, VueJS and more.
+    - Programmer with 4+ years of experience building technically complex web applications using Java, NodeJS, NestJS, C#, ReactJS, VueJS and more.
     - Backend development with Java, NodeJS, NestJS and C#; front-end development with ReactJS and VueJS.
     - Comfortable across UI libraries and design systems — Ant Design, Tailwind, Material Design and Bootstrap.
   technicalSkills:

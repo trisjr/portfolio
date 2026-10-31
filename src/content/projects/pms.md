@@ -10,7 +10,7 @@ teamSize: 10
 stack: ["React 19", "TypeScript", "Vite", "TanStack Router/Query/Table", "Zustand", "React Hook Form", "Zod", "Tailwind CSS 4", "Tiptap", "CASL", "NestJS 11", "TypeORM", "PostgreSQL", "Redis", "Socket.IO", "BullMQ", "Passport (JWT + Azure OAuth2)", "Elasticsearch", "Azure Blob", "AWS S3"]
 featured: true
 tint: "0,217,255"
-order: 4
+order: 7
 highlights:
   - 31 NestJS modules & 33+ entities powering Project → Folder → Document → Task chains
   - Multi-level approval workflow scoped by region / area / department

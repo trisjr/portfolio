@@ -10,7 +10,7 @@ teamSize: 5
 stack: ["Vue 3.4", "Vuetify 3.6", "TypeScript 5.5", "Vite 5.3", "Pinia 2.2", "CASL", "ApexCharts", "Strapi 5", "Node.js", "MySQL", "Redis (ioredis)", "Bull 4", "Firebase Admin 13", "Facebook Marketing API"]
 featured: true
 tint: "187,134,252"
-order: 3
+order: 4
 highlights:
   - Two-phase financial sync with concurrency control & Bull queues
   - CASL RBAC across the Company → Team → Member hierarchy
