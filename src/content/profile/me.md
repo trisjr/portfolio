@@ -22,7 +22,7 @@ aboutPreviewTitle: An engineer who builds products, not just features.
 aboutPreviewBio: I care about the system beneath the screen — RBAC that holds under load, two-phase financial syncs that always reconcile, and AI workflows that do real work instead of demos. Three years in, I've learned the best code starts from the outcome a person needs, not the ticket. Equal parts engineer and product thinker.
 aboutBio:
   - I'm a Software Engineer based in Vietnam, a graduate in Information Technology from Hue University of Sciences. For 3+ years I've built technically complex web applications — Facebook ads management, multi-level approval systems, loyalty platforms and healthcare digitization — usually owning both the frontend and the services humming beneath it.
-  - Lately I've gone all-in on AI-native engineering. I'm building TNMCORE-OS, an operating system that turns Agile/Scrum into a multi-agent SDLC, and CommandCenter AI, an end-to-end content studio. I'm happiest with a hard system-design problem, a clear spec, and far too much coffee.
+  - Lately I've gone all-in on AI-native engineering. I'm building TNMCORE-OS, an operating system that turns Agile/Scrum into a multi-agent SDLC, and BrandsWin, an end-to-end content studio. I'm happiest with a hard system-design problem, a clear spec, and far too much coffee.
 stats:
   - { value: 3, suffix: "+", label: Years building }
   - { value: 11, suffix: "", label: Projects shipped }
@@ -67,7 +67,7 @@ constellation:
 jobs:
   - yr: 2026 — Now
     role: AI-Native Architect
-    org: TNMCORE-OS · CommandCenter AI
+    org: TNMCORE-OS · BrandsWin
     desc: Architecting an AI-native team OS that turns Agile/Scrum into a multi-agent SDLC, plus an end-to-end social content studio powered by GPT-4o and Gemini.
   - yr: 2025 — Now
     role: Full-Stack Developer
