@@ -212,6 +212,85 @@
     opacity: 1;
 }
 
+/* display:none → flex skips transitions; give the panel somewhere to come
+   from when it opens without a morph (deep link, no view-transition support) */
+@starting-style {
+    .modal.open .modal__panel {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+}
+
+/* grown out of its card: the view transition is the entrance */
+.modal.morph .modal__panel {
+    transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .modal__panel {
+        transition: none;
+    }
+}
+
+/* ---- card ⇄ dossier morph ----
+   The card's frame grows into the panel. Snapshots keep their natural size
+   (no stretched text) and are clipped by the moving frame; the outgoing one
+   fades fast so the two never overlap for long. */
+::view-transition-group(dossier) {
+    animation-duration: .5s;
+    animation-timing-function: var(--ease);
+    overflow: clip;
+    border-radius: var(--radius-lg);
+}
+
+::view-transition-old(dossier),
+::view-transition-new(dossier) {
+    height: 100%;
+    object-fit: none;
+    object-position: 50% 0;
+}
+
+::view-transition-old(dossier) {
+    animation-duration: .16s;
+}
+
+::view-transition-new(dossier) {
+    animation-duration: .4s;
+}
+
+html.vt-dossier::view-transition-old(root),
+html.vt-dossier::view-transition-new(root) {
+    animation-duration: .35s;
+}
+
+/* ---- filter: survivors glide, the rest shrink away / grow in ---- */
+html.vt-filter::view-transition-group(*) {
+    animation-duration: .45s;
+    animation-timing-function: var(--ease);
+}
+
+html.vt-filter::view-transition-old(*):only-child {
+    animation: proj-out .22s ease-in both;
+}
+
+html.vt-filter::view-transition-new(*):only-child {
+    animation: proj-in .4s var(--ease) .12s both;
+}
+
+@keyframes proj-out {
+    to {
+        opacity: 0;
+        transform: scale(.92);
+    }
+}
+
+@keyframes proj-in {
+    from {
+        opacity: 0;
+        transform: scale(.92);
+    }
+}
+
 .modal__close {
     position: absolute;
     top: 20px;

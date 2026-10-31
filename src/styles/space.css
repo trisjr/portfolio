@@ -151,13 +151,14 @@ body.scan .scanlines {
     height: 7px;
     background: var(--accent);
     box-shadow: 0 0 12px var(--accent);
+    transition: opacity .25s;
 }
 
 .cursor-ring {
     width: 34px;
     height: 34px;
     border: 1.5px solid rgba(var(--accent-rgb), .6);
-    transition: width .2s var(--ease), height .2s var(--ease), background .2s, border-color .2s;
+    transition: width .2s var(--ease), height .2s var(--ease), background .2s, border-color .2s, opacity .25s;
 }
 
 body.hovering .cursor-ring {
@@ -750,6 +751,128 @@ h1, h2, h3 {
 
 .reveal[data-d="5"].in {
     animation-delay: .30s;
+}
+
+/* already on screen when the page warped in (or re-shown by a filter):
+   the transition was the entrance, don't slide it up again */
+.reveal.in.settled {
+    animation: none;
+}
+
+/* ---- Warp page transition ----
+   Scoped to ClientRouter navigations: Astro sets data-astro-transition
+   ("forward" | "back") on <html> for their duration, so same-document view
+   transitions (the project dossier, filters) keep their own styling.
+   The page (root) flies past and the next one approaches, while the particle
+   canvas and the fixed chrome get groups of their own that skip the
+   crossfade and stay live — the warp streaks (space.js) keep moving over
+   the swapping pages. Astro's stylesheet already turns every view-transition
+   animation off under prefers-reduced-motion. */
+html[data-astro-transition] #space-canvas {
+    view-transition-name: space;
+}
+
+html[data-astro-transition] .scanlines {
+    view-transition-name: scanlines;
+}
+
+html[data-astro-transition] .nav {
+    view-transition-name: nav;
+}
+
+html[data-astro-transition] #totop {
+    view-transition-name: totop;
+}
+
+html[data-astro-transition] #tw-open {
+    view-transition-name: tw-open;
+}
+
+html[data-astro-transition] #tweaks {
+    view-transition-name: tweaks;
+}
+
+/* a named group's position is fixed at capture, so the cursor would freeze
+   mid-jump; hide it instead and let it fade back once the page is in */
+html[data-astro-transition] .cursor-dot,
+html[data-astro-transition] .cursor-ring {
+    opacity: 0;
+    transition: none;
+}
+
+/* Astro restores a back/forward entry's scroll with a plain scrollTo(),
+   which would honour `scroll-behavior: smooth` and scroll inside the zoom */
+html[data-astro-transition] {
+    scroll-behavior: auto;
+}
+
+html[data-astro-transition]::view-transition {
+    background: var(--bg);
+}
+
+/* `(*)` has zero specificity, so the (root) rules below win over these */
+html[data-astro-transition]::view-transition-group(*),
+html[data-astro-transition]::view-transition-new(*) {
+    animation: none;
+}
+
+html[data-astro-transition]::view-transition-old(*) {
+    display: none;
+}
+
+/* the old page is gone before the new one fades up, so the two never
+   read as a double exposure; the streaks carry the gap */
+html[data-astro-transition]::view-transition-old(root) {
+    display: block;
+    animation: warp-past .32s cubic-bezier(.5, 0, .9, .4) both;
+}
+
+html[data-astro-transition]::view-transition-new(root) {
+    animation: warp-arrive .5s var(--ease) .18s both;
+}
+
+html[data-astro-transition="back"]::view-transition-old(root) {
+    animation-name: warp-recede;
+}
+
+html[data-astro-transition="back"]::view-transition-new(root) {
+    animation-name: warp-return;
+}
+
+@keyframes warp-past {
+    55% {
+        opacity: 0;
+    }
+    to {
+        opacity: 0;
+        transform: scale(1.08);
+        filter: blur(3px);
+    }
+}
+
+@keyframes warp-arrive {
+    from {
+        opacity: 0;
+        transform: scale(.94);
+    }
+}
+
+@keyframes warp-recede {
+    55% {
+        opacity: 0;
+    }
+    to {
+        opacity: 0;
+        transform: scale(.94);
+    }
+}
+
+@keyframes warp-return {
+    from {
+        opacity: 0;
+        transform: scale(1.08);
+        filter: blur(3px);
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {

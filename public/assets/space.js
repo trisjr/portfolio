@@ -1,6 +1,6 @@
 /* ============================================================
    VIRTUAL SPACE — engine
-   particle network · cursor · reveal · nav · tweaks
+   particle network · warp · cursor · reveal · nav · tweaks
 
    View Transitions aware:
    - bootOnce() runs a single time; it owns the persisted canvas/cursor
@@ -44,6 +44,10 @@
   const PARTICLES = (function () {
     let canvas, ctx, w, h, dpr, nodes = [], raf, density = 1, mouse = { x: -999, y: -999 };
     const DENS = { calm: 0.45, regular: 0.8, dense: 1.3 };
+    // Warp jump: during a client-side navigation the field streaks radially
+    // from the viewport centre (outward = forward, inward = back). `level`
+    // eases toward `target` every frame, so the jump spools up and decays.
+    const warp = { level: 0, target: 0, dir: 1, start: 0, timer: 0 };
 
     function size() {
       dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -72,15 +76,44 @@
       const v = getComputedStyle(document.documentElement).getPropertyValue("--accent-rgb").trim();
       return v || "0, 217, 255";
     }
+    // A node that has flown past the edge (forward) or into the centre (back)
+    // re-enters where the warp feeds from: near the centre, or at the rim.
+    function respawn(n) {
+      const a = Math.random() * Math.PI * 2;
+      const R = Math.hypot(w, h) / 2;
+      const r = warp.dir > 0 ? R * (.04 + Math.random() * .3) : R * (.7 + Math.random() * .3);
+      n.x = w / 2 + Math.cos(a) * r; n.y = h / 2 + Math.sin(a) * r;
+    }
     function frame() {
       const rgb = accentRGB();
       ctx.clearRect(0, 0, w, h);
       const LINK = 132;
+      warp.level += (warp.target - warp.level) * (warp.target > warp.level ? .14 : .045);
+      const wl = warp.level > .004 ? warp.level : 0;
       for (let i = 0; i < nodes.length; i++) {
         const n = nodes[i];
         n.x += n.vx; n.y += n.vy;
-        if (n.x < 0 || n.x > w) n.vx *= -1;
-        if (n.y < 0 || n.y > h) n.vy *= -1;
+        if (wl) {
+          const dx = n.x - w / 2, dy = n.y - h / 2;
+          const d = Math.hypot(dx, dy) || 1;
+          const ux = dx / d, uy = dy / d;
+          // farther from the centre = faster, like stars rushing past
+          const sp = wl * (1.2 + d * .055) * warp.dir;
+          n.x += ux * sp; n.y += uy * sp;
+          const gone = n.x < -40 || n.x > w + 40 || n.y < -40 || n.y > h + 40;
+          if (warp.dir > 0 ? gone : d < 24) { respawn(n); continue; }
+          const tail = Math.abs(sp) * 4.5;
+          ctx.beginPath();
+          ctx.moveTo(n.x - ux * tail * warp.dir, n.y - uy * tail * warp.dir);
+          ctx.lineTo(n.x, n.y);
+          ctx.strokeStyle = "rgba(" + rgb + "," + (.65 + .2 * wl).toFixed(3) + ")";
+          ctx.lineWidth = n.r * (2 - wl * .6); ctx.lineCap = "round"; ctx.stroke();
+          continue;
+        }
+        // steer back inside rather than flip, so a node left past the edge
+        // (e.g. after a warp) can't get stuck oscillating out of view
+        if (n.x < 0 || n.x > w) n.vx = (n.x < 0 ? 1 : -1) * Math.abs(n.vx);
+        if (n.y < 0 || n.y > h) n.vy = (n.y < 0 ? 1 : -1) * Math.abs(n.vy);
         // mouse gentle attraction
         const mdx = mouse.x - n.x, mdy = mouse.y - n.y;
         const md = Math.hypot(mdx, mdy);
@@ -90,14 +123,16 @@
         ctx.fillStyle = "rgba(" + rgb + ", .65)";
         ctx.fill();
       }
-      for (let i = 0; i < nodes.length; i++) {
+      // the network dissolves while warping and re-forms as the jump decays
+      const net = 1 - Math.min(1, wl * 2);
+      for (let i = 0; net && i < nodes.length; i++) {
         for (let j = i + 1; j < nodes.length; j++) {
           const a = nodes[i], b = nodes[j];
           const d = Math.hypot(a.x - b.x, a.y - b.y);
           if (d < LINK) {
             ctx.beginPath();
             ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y);
-            ctx.strokeStyle = "rgba(" + rgb + "," + (0.14 * (1 - d / LINK)).toFixed(3) + ")";
+            ctx.strokeStyle = "rgba(" + rgb + "," + (0.14 * net * (1 - d / LINK)).toFixed(3) + ")";
             ctx.lineWidth = 1; ctx.stroke();
           }
         }
@@ -106,7 +141,7 @@
         if (dm < 170) {
           ctx.beginPath();
           ctx.moveTo(nodes[i].x, nodes[i].y); ctx.lineTo(mouse.x, mouse.y);
-          ctx.strokeStyle = "rgba(" + rgb + "," + (0.2 * (1 - dm / 170)).toFixed(3) + ")";
+          ctx.strokeStyle = "rgba(" + rgb + "," + (0.2 * net * (1 - dm / 170)).toFixed(3) + ")";
           ctx.lineWidth = 1; ctx.stroke();
         }
       }
@@ -126,6 +161,20 @@
       retune() {
         density = DENS[TW.density] || DENS.regular;
         if (canvas) build();
+      },
+      // spool up on link click; settle() once the new page is in
+      warp(dir) {
+        if (reduce || !canvas) return;
+        warp.dir = dir; warp.target = 1; warp.start = performance.now();
+        clearTimeout(warp.timer);
+        warp.timer = setTimeout(() => { warp.target = 0; }, 4000); // never stall mid-jump
+      },
+      settle() {
+        if (reduce || !canvas) return;
+        // hold the jump long enough to read even when the page was prefetched
+        const hold = Math.max(0, warp.start + 480 - performance.now());
+        clearTimeout(warp.timer);
+        warp.timer = setTimeout(() => { warp.target = 0; }, hold);
       },
     };
   })();
@@ -164,6 +213,18 @@
     els.forEach((el) => {
       const r = el.getBoundingClientRect();
       if (r.top < vh * 0.92 && r.bottom > 0) el.classList.add("in");
+    });
+  }
+
+  /* Whatever is already on screen when a client-side navigation swaps the
+     page in arrives with the warp zoom itself — settle it so it doesn't
+     stagger in a second time. */
+  function settleReveals() {
+    if (reduce) return;
+    const vh = window.innerHeight || document.documentElement.clientHeight;
+    document.querySelectorAll(".reveal:not(.in)").forEach((el) => {
+      const r = el.getBoundingClientRect();
+      if (r.top < vh && r.bottom > 0) el.classList.add("in", "settled");
     });
   }
 
@@ -292,6 +353,11 @@
 
     // expose reveal helper for dynamically-injected content (per-page scripts)
     window.__revealInView = revealInView;
+
+    // warp jump across client-side navigations; the page zoom that rides
+    // along with it lives in space.css (html[data-astro-transition]).
+    document.addEventListener("astro:before-preparation", (e) => PARTICLES.warp(e.direction === "back" ? -1 : 1));
+    document.addEventListener("astro:after-swap", () => { settleReveals(); PARTICLES.settle(); });
 
     // per-page boot: fires on initial load and after every client-side nav.
     document.addEventListener("astro:page-load", bootPage);
