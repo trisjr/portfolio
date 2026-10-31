@@ -10,7 +10,7 @@ teamSize: 10
 stack: ["Python", "FastAPI", "NestJS", "Node.js", "PostgreSQL"]
 featured: false
 tint: "255,107,53"
-order: 11
+order: 12
 highlights:
   - Detailed order management for outdoor & retail posters
   - Production cost engine based on man-hours & machine-hours

@@ -9,7 +9,7 @@ role: Web Developer
 stack: ["Astro", "React", "Strapi", "AI Skills"]
 featured: false
 tint: "0,245,170"
-order: 8
+order: 9
 highlights:
   - Theme template that auto-customizes from a client design.md
   - Role-based AI skills mapped to each step of the SDLC

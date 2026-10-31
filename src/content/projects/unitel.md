@@ -10,7 +10,7 @@ teamSize: 5
 stack: ["React", "Node.js", "Figma"]
 featured: false
 tint: "120,180,255"
-order: 10
+order: 11
 highlights:
   - Rebuilt interfaces to match a new Figma design system
   - Optimized API call logic for performance

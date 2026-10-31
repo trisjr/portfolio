@@ -25,7 +25,7 @@ aboutBio:
   - Lately I've gone all-in on AI-native engineering. I'm building TNMCORE-OS, an operating system that turns Agile/Scrum into a multi-agent SDLC, and BrandsWin, an end-to-end content studio. I'm happiest with a hard system-design problem, a clear spec, and far too much coffee.
 stats:
   - { value: 3, suffix: "+", label: Years building }
-  - { value: 13, suffix: "", label: Projects shipped }
+  - { value: 14, suffix: "", label: Projects shipped }
   - { value: 6, suffix: "", label: Domains delivered }
 terminal:
   role: Full-Stack Developer

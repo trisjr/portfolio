@@ -10,7 +10,7 @@ teamSize: 8
 stack: ["React", "MUI", "GraphQL", "AWS"]
 featured: false
 tint: "227,66,52"
-order: 12
+order: 13
 highlights:
   - Location-based election data management & queries
   - Time-scoped campaign organization

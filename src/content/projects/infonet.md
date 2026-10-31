@@ -10,7 +10,7 @@ teamSize: 24
 stack: ["React", "Next.js", "GraphQL", "Nexus", "Prisma", "MySQL", "SQL Server", "AWS"]
 featured: false
 tint: "255,170,0"
-order: 9
+order: 10
 highlights:
   - 4-level architecture — System → Service → Site → Page
   - Built UI in React/Next.js with cross-device optimization

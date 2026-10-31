@@ -10,7 +10,7 @@ teamSize: 8
 stack: ["JavaScript", "Vue.js", "NestJS", "Strapi", "MinIO", "PostgreSQL"]
 featured: false
 tint: "0,200,150"
-order: 13
+order: 14
 highlights:
   - Digitized vaccine center & immunization data management
   - Supported clinical and medical process workflows
