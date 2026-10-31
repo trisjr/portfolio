@@ -15,7 +15,7 @@ highlights:
   - AI Rewrite, Smart Queue & Draft Reply on GPT-4o + Gemini fallback (<3s p95)
   - Multi-tenant workspaces with Owner / Admin / Editor RBAC
 links:
-  live: "#"
+  live: "https://brandswin.co/"
   code: "https://github.com/tenomad-company/tnm-marketing-studio"
 ---
 

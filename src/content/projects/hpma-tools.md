@@ -25,7 +25,7 @@ responsibilities:
       - Extended the extension integration on the NestJS API/worker — binding approval requests inside the approve step, force-releasing BM barriers stuck by uncertain writes, worker presence signals and marking stuck jobs completed.
       - Added encrypted worker 2FA secret storage with a TOTP code API so extension workers can pass Meta's two-factor prompts.
 links:
-  live: "#"
+  live: "https://tools.nomad.id.vn/"
   code: "https://github.com/tenomad-company/hpma-tools"
 ---
 
