@@ -10,7 +10,7 @@ teamSize: 10
 stack: ["React", "Vue 3", "TypeScript", "Vite", "Tailwind CSS", "Radix UI", "React Query", "Zustand", "Vuetify", "Pinia", "ApexCharts", "TipTap", "NestJS", "TypeORM", "PostgreSQL", "JWT / Passport", "Socket.io", "MinIO", "Docker", "Resend"]
 featured: true
 tint: "255,0,110"
-order: 5
+order: 7
 highlights:
   - QR-based points & voucher redemption with real-time updates
   - Auto tier upgrade/downgrade scheduler plus expiration cron jobs
