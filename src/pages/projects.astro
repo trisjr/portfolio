@@ -111,23 +111,62 @@ const cats = [
         const grid = document.getElementById("grid");
         if (!grid) return;
         const filtersEl = document.getElementById("filters");
+        const root = document.documentElement;
+        const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
         let active = "All";
+
+        // Same-document view transitions for the filter and the dossier.
+        // Never while an Astro page transition is still running (e.g. landing
+        // on a /projects#id deep link) — starting one would cut the warp short.
+        const canMorph = () =>
+          !reduce && "startViewTransition" in document && !root.hasAttribute("data-astro-transition");
+
+        // `kind` scopes the CSS (html.vt-filter / html.vt-dossier). Resolves
+        // true when this was still the latest run of its kind — a run cut
+        // short by a newer one (rapid clicks) leaves the cleanup to that one.
+        const runs = {};
+        function transition(kind, update) {
+          if (!canMorph()) {
+            update();
+            return Promise.resolve(true);
+          }
+          const run = runs[kind] = (runs[kind] || 0) + 1;
+          root.classList.add("vt-" + kind);
+          return document.startViewTransition(update).finished
+            .catch(() => {})
+            .then(() => {
+              const latest = runs[kind] === run;
+              if (latest) root.classList.remove("vt-" + kind);
+              return latest;
+            });
+        }
+
+        const vtName = card => "proj-" + card.dataset.id.replace(/[^a-z0-9-]/gi, "-");
 
         filtersEl.querySelectorAll(".filter").forEach(b => {
           b.addEventListener("click", () => {
-            active = b.dataset.cat;
-            filtersEl.querySelectorAll(".filter").forEach(f => f.classList.toggle("on", f === b));
-            render();
+            if (b.dataset.cat === active) return;
+            // name every card so survivors glide to their new slots
+            const cards = grid.querySelectorAll(".proj");
+            cards.forEach(c => c.style.viewTransitionName = vtName(c));
+            transition("filter", () => {
+              active = b.dataset.cat;
+              filtersEl.querySelectorAll(".filter").forEach(f => f.classList.toggle("on", f === b));
+              render(true);
+            }).then(latest => latest && cards.forEach(c => c.style.viewTransitionName = ""));
           });
         });
 
-        function render() {
+        function render(settle) {
           let n = 0;
           grid.querySelectorAll(".proj").forEach(card => {
             const show = active === "All" || card.dataset.cat.startsWith(active);
             card.style.display = show ? "" : "none";
             if (show) {
+              // display:none → shown restarts CSS animations; a filter's view
+              // transition is the entrance, so don't replay revealUp too
               card.classList.add("in");
+              if (settle) card.classList.add("settled");
               n++;
               const num = card.querySelector(".proj__num");
               if (num) num.textContent = "P / 0" + n;
@@ -135,28 +174,51 @@ const cats = [
           });
         }
 
-        // modal
+        // modal — grows out of the clicked card and folds back into it
         const modal = document.getElementById("modal");
+        const panel = document.getElementById("modalPanel");
         const mc = document.getElementById("modalContent");
+        let origin = null; // card the open dossier grew out of
 
-        function openModal(id) {
+        function openModal(id, card) {
           const tpl = document.querySelector(`template[data-modal-id="${id}"]`);
           if (!tpl) return;
-          mc.innerHTML = "";
-          mc.appendChild(tpl.content.cloneNode(true));
-          modal.classList.add("open");
-          document.body.style.overflow = "hidden";
-          history.replaceState(null, "", "#" + id);
+          origin = card && canMorph() ? card : null;
+          if (origin) origin.style.viewTransitionName = "dossier";
+          transition("dossier", () => {
+            if (origin) {
+              origin.style.viewTransitionName = "";
+              panel.style.viewTransitionName = "dossier";
+            }
+            mc.innerHTML = "";
+            mc.appendChild(tpl.content.cloneNode(true));
+            modal.classList.toggle("morph", !!origin);
+            modal.classList.add("open");
+            document.body.style.overflow = "hidden";
+            history.replaceState(null, "", "#" + id);
+          }).then(latest => {
+            if (latest) panel.style.viewTransitionName = "";
+          });
         }
 
         function closeModal() {
-          modal.classList.remove("open");
-          document.body.style.overflow = "";
-          history.replaceState(null, "", location.pathname);
+          if (!modal.classList.contains("open")) return;
+          const back = origin && canMorph() ? origin : null;
+          origin = null;
+          if (back) panel.style.viewTransitionName = "dossier";
+          transition("dossier", () => {
+            panel.style.viewTransitionName = "";
+            if (back) back.style.viewTransitionName = "dossier";
+            modal.classList.remove("open", "morph");
+            document.body.style.overflow = "";
+            history.replaceState(null, "", location.pathname);
+          }).then(latest => {
+            if (latest && back) back.style.viewTransitionName = "";
+          });
         }
 
         grid.querySelectorAll(".proj").forEach(card =>
-          card.addEventListener("click", () => openModal(card.dataset.id)));
+          card.addEventListener("click", () => openModal(card.dataset.id, card)));
         modal.querySelectorAll("[data-close]").forEach(el => el.addEventListener("click", closeModal));
         const ac = new AbortController();
         document.addEventListener("keydown", e => {
